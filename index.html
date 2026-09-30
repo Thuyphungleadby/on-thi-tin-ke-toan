@@ -1,0 +1,1201 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Luyện đề Tin học ứng dụng trong kế toán: tạo đề ngẫu nhiên, tải file Excel để làm, chấm từng ô; bài tập hàm tài chính.">
+<title>Sổ ôn Tin học kế toán</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,650&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+/* Bố cục: giấy sổ kế toán kẻ xanh; mỗi phần là một "sheet" có nhãn tab như Excel; đề bên trái, ô trả lời bên phải */
+:root{
+  --paper:#eef2ec; --sheet:#fbfcf9; --ink:#1c2a30; --muted:#5a6a64; --rule:#cbd8cf; --rule-strong:#9fb5a7;
+  --accent:#1e5b86; --accent-soft:#dde9f2; --ok:#2e7a4c; --ok-soft:#e1f1e6; --bad:#b0271d; --bad-soft:#f8e3e0; --warn:#9a6300; --warn-soft:#f6ecd6;
+  --f-display:"Newsreader",Georgia,"Times New Roman",serif; --f-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif; --f-num:"Roboto Mono",ui-monospace,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#111815; --sheet:#171f1b; --ink:#e2ebe5; --muted:#9aaba3; --rule:#2a3831; --rule-strong:#40554a;
+  --accent:#86bbe3; --accent-soft:#1d3142; --ok:#71c893; --ok-soft:#173326; --bad:#ff8f84; --bad-soft:#3a1c19; --warn:#e4b458; --warn-soft:#352a14; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111815; --sheet:#171f1b; --ink:#e2ebe5; --muted:#9aaba3; --rule:#2a3831; --rule-strong:#40554a;
+  --accent:#86bbe3; --accent-soft:#1d3142; --ok:#71c893; --ok-soft:#173326; --bad:#ff8f84; --bad-soft:#3a1c19; --warn:#e4b458; --warn-soft:#352a14; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{color-scheme:light}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:0 48px}
+header.top{padding-block:28px 8px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;border-bottom:1px solid var(--rule-strong)}
+h1{font-family:var(--f-display);font-weight:650;font-size:clamp(28px,4.4vw,40px);line-height:1.1;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:6px 0 0;max-width:62ch}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-top:18px;border-bottom:1px solid var(--rule-strong)}
+nav.tabs button{font:inherit;font-weight:600;font-size:14px;border:1px solid transparent;border-bottom:none;background:none;color:var(--muted);padding:9px 14px;border-radius:var(--r) var(--r) 0 0;cursor:pointer;margin-bottom:-1px}
+nav.tabs button[aria-selected="true"]{background:var(--sheet);color:var(--ink);border-color:var(--rule-strong)}
+nav.tabs button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section.pane{padding-top:22px}
+h2{font-family:var(--f-display);font-weight:650;font-size:24px;margin:0 0 6px;text-wrap:balance}
+h3{font-size:16px;margin:0;font-weight:700}
+p{margin:0}
+.muted{color:var(--muted)}
+.num,input.ans,td.n,th.n{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.btn{font:inherit;font-size:14px;font-weight:600;border-radius:var(--r);padding:7px 13px;cursor:pointer;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--sheet)}
+.btn.ghost{background:none}
+.btn:hover{border-color:var(--accent)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:var(--r);overflow:hidden;flex-wrap:wrap}
+.seg button{font:inherit;font-size:14px;padding:7px 12px;border:none;background:var(--sheet);color:var(--ink);cursor:pointer;border-right:1px solid var(--rule)}
+.seg button:last-child{border-right:none}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--sheet);font-weight:600}
+.maDe{display:flex;align-items:center;gap:6px;font-size:14px}
+.maDe input{width:92px;font-family:var(--f-num);font-size:14px;padding:6px 8px;border:1px solid var(--rule-strong);border-radius:4px;background:var(--sheet);color:var(--ink)}
+.hint{font-size:13px;color:var(--muted);margin:-6px 0 14px;max-width:80ch}
+.score{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:14px}
+.bar{width:140px;height:8px;background:var(--rule);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+.layout{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.score{margin-left:0}}
+.debai{background:var(--sheet);border:1px solid var(--rule-strong);border-radius:var(--r);position:sticky;top:calc(env(safe-area-inset-top,0px) + 10px);max-height:calc(100vh - 20px);overflow:auto}
+@media (max-width:900px){.debai{position:static;max-height:none}}
+.debai>summary{list-style:none;cursor:pointer;padding:12px 16px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:0;background:var(--sheet);z-index:1}
+.debai>summary::-webkit-details-marker{display:none}
+.debai .body{padding:12px 16px 18px;display:grid;gap:14px;font-size:14px}
+.debai h4{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);font-weight:700}
+.debai ul{margin:0;padding-left:18px}
+.debai li{margin:2px 0}
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:4px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:4px 8px;border-bottom:1px solid var(--rule);text-align:left;white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:12px;background:var(--paper)}
+td.n,th.n{text-align:right}
+tr.grp td{font-weight:700;background:var(--accent-soft)}
+tr.sum td{font-weight:700;border-top:1px solid var(--rule-strong)}
+.sheets{display:grid;gap:18px}
+.sheet{background:var(--sheet);border:1px solid var(--rule-strong);border-radius:0 var(--r) var(--r) var(--r);position:relative;margin-top:22px}
+.sheet .tab{position:absolute;top:-23px;left:-1px;font-family:var(--f-num);font-size:12px;padding:3px 10px;background:var(--sheet);border:1px solid var(--rule-strong);border-bottom:none;border-radius:5px 5px 0 0;color:var(--accent)}
+.sheet .hd{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--rule)}
+.sheet .hd .acts{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-size:12px;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--paper);color:var(--muted);font-family:var(--f-num)}
+.chip.full{background:var(--ok-soft);color:var(--ok)}
+.q{display:grid;grid-template-columns:minmax(0,1fr) 170px 26px;gap:6px 12px;align-items:center;padding:9px 16px;border-bottom:1px solid var(--rule)}
+.q:last-of-type{border-bottom:none}
+.q label{font-size:14px}
+.q label small{display:block;color:var(--muted);font-size:12px}
+input.ans{width:100%;font-size:14px;padding:6px 8px;border:1px solid var(--rule-strong);border-radius:4px;background:var(--paper);color:var(--ink);text-align:right}
+.q[data-st="ok"] input.ans{border-color:var(--ok);background:var(--ok-soft)}
+.q[data-st="bad"] input.ans{border-color:var(--bad);background:var(--bad-soft)}
+.q[data-st="near"] input.ans,.q[data-st="sign"] input.ans{border-color:var(--warn);background:var(--warn-soft)}
+.mark{font-weight:700;text-align:center;font-size:15px}
+.q[data-st="ok"] .mark{color:var(--ok)} .q[data-st="bad"] .mark{color:var(--bad)} .q[data-st="near"] .mark,.q[data-st="sign"] .mark{color:var(--warn)}
+.sol{grid-column:1/-1;font-size:13px;background:var(--paper);border-left:3px solid var(--accent);padding:6px 10px;border-radius:0 4px 4px 0}
+.sol b{font-family:var(--f-num)}
+.sol .fx{font-family:var(--f-num);color:var(--muted);display:block;white-space:pre-wrap;word-break:break-word}
+.fb{grid-column:1/-1;font-size:12.5px}
+.q[data-st="near"] .fb,.q[data-st="sign"] .fb{color:var(--warn)} .q[data-st="bad"] .fb{color:var(--bad)}
+@media (max-width:520px){.q{grid-template-columns:minmax(0,1fr) 26px}.q input.ans{grid-column:1;grid-row:2}.q .mark{grid-row:2;grid-column:2}}
+details.full{border-top:1px solid var(--rule)}
+details.full>summary{cursor:pointer;padding:10px 16px;font-size:13px;font-weight:600;color:var(--accent)}
+details.full .inner{padding:0 16px 14px;display:grid;gap:10px}
+.note{font-size:13.5px;background:var(--warn-soft);border:1px solid var(--warn);color:var(--ink);padding:10px 12px;border-radius:var(--r)}
+.note b{color:var(--warn)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px}
+.card{background:var(--sheet);border:1px solid var(--rule-strong);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px;align-content:start;min-width:0}
+.src{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.card .q{padding:6px 0;grid-template-columns:minmax(0,1fr) 150px 26px}
+.card .acts{display:flex;gap:8px;flex-wrap:wrap}
+@media (max-width:520px){.card .q{grid-template-columns:minmax(0,1fr) 26px}}
+.fnref{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px}
+.fnref div{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:10px 12px;font-size:13px}
+.fnref code{font-family:var(--f-num);font-size:12.5px;color:var(--accent);display:block;margin-bottom:3px;word-break:break-word}
+.list{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.list li{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:10px 14px;font-size:14px}
+.list li b{display:block}
+code.i{font-family:var(--f-num);font-size:13px;background:var(--paper);padding:1px 5px;border-radius:3px;border:1px solid var(--rule);word-break:break-word}
+.kv td:first-child{white-space:normal}
+.stack{display:grid;gap:18px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:var(--r);font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Sổ ôn Tin học ứng dụng trong kế toán</h1>
+      <p class="sub">Luyện đúng dạng đề thi của Khoa Kinh tế – ĐH Mở Hà Nội: điền bảng lương, phân bổ, vật liệu, khấu hao, giá thành, kết quả kinh doanh; và các hàm tài chính Excel. Đơn vị tính 1.000đ.</p>
+    </div>
+  </header>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="luyen" aria-selected="true">Luyện đề tổng hợp</button>
+    <button role="tab" data-tab="ham" aria-selected="false">Hàm tài chính</button>
+    <button role="tab" data-tab="nhatlinh" aria-selected="false">Đáp án Nhất Linh</button>
+    <button role="tab" data-tab="meo" aria-selected="false">Bẫy &amp; mẹo</button>
+  </nav>
+
+  <section class="pane" id="p-luyen">
+    <div class="toolbar">
+      <div class="seg" id="chonDe">
+        <button data-de="quocan" aria-pressed="true">Quốc An</button>
+        <button data-de="hoanganh" aria-pressed="false">Hoàng Anh</button>
+        <button data-de="rand" aria-pressed="false">Đề ngẫu nhiên</button>
+      </div>
+      <button class="btn" id="deMoi">Tạo đề ngẫu nhiên mới</button>
+      <button class="btn primary" id="taiDe">Tải đề này (Excel)</button>
+      <form class="maDe" id="formMa"><label for="oMa">Mã đề</label><input id="oMa" inputmode="numeric" autocomplete="off" placeholder="VD 4321"><button class="btn ghost" type="submit">Mở</button></form>
+      <button class="btn" id="chamHet">Chấm tất cả</button>
+      <div class="score"><span id="diem" class="num">0/0 đúng</span><div class="bar"><i id="diemBar"></i></div></div>
+    </div>
+    <p class="hint" id="goiY"></p>
+    <div class="layout">
+      <details class="debai" id="debai" open>
+        <summary><h3 id="deTieuDe">Đề bài</h3><button class="btn ghost" id="copyNV" type="button">Sao chép bảng nhân viên</button></summary>
+        <div class="body" id="deBody"></div>
+      </details>
+      <div class="sheets" id="sheets"></div>
+    </div>
+  </section>
+
+  <section class="pane" id="p-ham" hidden>
+    <div class="stack">
+      <div>
+        <h2>Hàm tài chính</h2>
+        <p class="muted" style="max-width:70ch">Bài tập trong tài liệu ĐH Mở (Phần II) và file Word “Bài tập tổng hợp HTC”. Gõ đáp số rồi bấm Kiểm tra. Excel trả số âm cho tiền bỏ ra; web chấp nhận cả hai dấu nhưng sẽ nhắc bạn. Công thức viết dấu phẩy, máy để vùng Việt Nam thì thay bằng dấu chấm phẩy.</p>
+      </div>
+      <div class="grid2" id="finCards"></div>
+      <div>
+        <h2 style="font-size:20px">Tra cứu nhanh cú pháp</h2>
+        <div class="fnref" id="fnRef"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pane" id="p-nhatlinh" hidden>
+    <div class="stack" id="nlBody"></div>
+  </section>
+
+  <section class="pane" id="p-meo" hidden>
+    <div class="stack" id="meoBody"></div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" defer></script>
+</body>
+</html>
+
+<script>
+/* ===== Dữ liệu đề gốc & bộ tính ===== */
+const NV_GOC = {
+  sxql: [
+    { ten: 'Trần Văn A', cv: 'Quản đốc', hs: 4.6, pc: 1.5, cong: 22, tu: 2000 },
+    { ten: 'Nguyễn Văn B', cv: 'P.Quản đốc', hs: 3.7, pc: 1.2, cong: 21, tu: 2000 }
+  ],
+  sx: [
+    { ten: 'Vũ Thị C', hs: 1.5, sp: 2200, dg: 0.5, cong: 22, tu: 1000 },
+    { ten: 'Nguyễn Đình D', hs: 1.7, sp: 2500, dg: 0.5, cong: 20, tu: 1000 },
+    { ten: 'Vũ Thị E', hs: 2.1, sp: 2000, dg: 0.5, cong: 19, tu: 1000 },
+    { ten: 'Cao Thị F', hs: 2.5, sp: 2500, dg: 0.5, cong: 18, tu: 1000 },
+    { ten: 'Trần Đình G', hs: 3.5, sp: 2300, dg: 0.5, cong: 22, tu: 1000 },
+    { ten: 'Nguyễn Văn H', hs: 1.7, sp: 4000, dg: 0.6, cong: 21, tu: 1000 },
+    { ten: 'Bùi Đình K', hs: 2.8, sp: 2900, dg: 0.5, cong: 20, tu: 1000 },
+    { ten: 'Nguyễn Văn L', hs: 1.8, sp: 2500, dg: 0.5, cong: 22, tu: 1000 },
+    { ten: 'Nguyễn Quy N', hs: 2.3, sp: 5000, dg: 0.6, cong: 22, tu: 1000 },
+    { ten: 'Mai Văn M', hs: 2.7, sp: 2500, dg: 0.5, cong: 18, tu: 1000 },
+    { ten: 'Phan Thị V', hs: 2.4, sp: 2600, dg: 0.5, cong: 21, tu: 1000 }
+  ],
+  ql: [
+    { ten: 'Trần Nguyên Q', cv: 'Giám đốc', hs: 5.8, pc: 4, cong: 22, tu: 5000 },
+    { ten: 'Nguyễn Thị X', cv: 'P.Giám đốc', hs: 4.5, pc: 3.5, cong: 21, tu: 3500 },
+    { ten: 'Nguyễn Văn P', cv: 'Kế toán', hs: 3.7, pc: 1.5, cong: 22, tu: 3000 },
+    { ten: 'Lê Văn B', hs: 2.8, cong: 20, tu: 2500 },
+    { ten: 'Hoàng Trọng C', hs: 2.6, cong: 19, tu: 2500 },
+    { ten: 'Vũ Ngọc V', hs: 2.6, cong: 22, tu: 2500 }
+  ],
+  bh: [
+    { ten: 'Trần Thị B', cv: 'Tổ trưởng', hs: 3.6, pc: 1.2, dg: 0.001, tongDT: true, cong: 22, tu: 2000 },
+    { ten: 'Nguyễn Văn S', hs: 2.5, sp: 100000, dg: 0.009, cong: 21, tu: 2000 },
+    { ten: 'Mai Văn X', hs: 1.8, sp: 150000, dg: 0.01, cong: 22, tu: 2000 },
+    { ten: 'Phạm Ngọc T', hs: 1.9, sp: 250000, dg: 0.012, cong: 21, tu: 2000 },
+    { ten: 'Trần Nguyên A', hs: 1.7, sp: 100000, dg: 0.011, cong: 20, tu: 2000 }
+  ]
+};
+
+const DE_QUOC_AN = {
+  id: 'quocan', ma: 'QA', ten: 'Quốc An (đề gốc)', cty: 'Quốc An', thang: 6, ngayCong: 22, nghi: 'Thứ 7 và Chủ nhật', ngayThang: 30,
+  ltt: 2418, quyKT: 38500,
+  nv: NV_GOC,
+  vl: [
+    { ma: '1521S', ten: 'Sắt', loai: 'chinh', tonSL: 58000, tonTT: 557600,
+      nhap: [{ ngay: 2, sl: 105000, dg: 10.7, cp: 500, tt: 'chưa trả tiền người bán, chi phí vận chuyển 500 trả bằng TGNH' }],
+      xuat: [{ ngay: 8, sl: 90000 }, { ngay: 9, sl: 10000 }] },
+    { ma: '1521G', ten: 'Gỗ', loai: 'chinh', tonSL: 74000, tonTT: 771600,
+      nhap: [{ ngay: 5, sl: 30000, dg: 9.68, cp: 0, tt: 'đã thanh toán bằng chuyển khoản' }],
+      xuat: [{ ngay: 18, sl: 83000 }] },
+    { ma: '1522M', ten: 'Mùn cưa', loai: 'phu', tonSL: 18500, tonTT: 59390,
+      nhap: [{ ngay: 10, sl: 22000, dg: 3.65, cp: 0, tt: 'chưa trả tiền người bán' },
+             { ngay: 12, sl: 12000, dg: 3.7, cp: 0, tt: 'chưa trả tiền người bán' }],
+      xuat: [{ ngay: 25, sl: 17000 }] }
+  ],
+  kh: {
+    truoc: { 627: 4509, 641: 1875, 642: 3278 },
+    tang: [{ ten: 'Xe tải 15T cho phân xưởng', ng: 250000, nam: 15, ngay: 5, bp: 627 }],
+    giam: [{ ten: 'Thanh lý máy photo của BP bán hàng', ng: 32800, nam: 5, ngay: 10, bp: 641 },
+           { ten: 'Thanh lý máy xúc của phân xưởng', ng: 180000, nam: 12, ngay: 22, bp: 627 }]
+  },
+  dien: { 627: 4518, 641: 2125, 642: 3780 },
+  dd: { 1521: 6530, 1522: 2149, 622: 3782, 627: 3091 },
+  spTen: 'X', spHT: 70000, spDD: 22500, mucDo: 20,
+  tp: {
+    tonSL: 15800, tonTT: 564060,
+    nhap: [{ ngay: 2, sl: 30000 }, { ngay: 5, sl: 15000 }, { ngay: 18, sl: 5000 }],
+    xuat: [{ ngay: 12, sl: 25000, hd: '01942', kh: 'thu bằng TGNH', dt: 1225000 },
+           { ngay: 13, sl: 14000, hd: '01943', kh: 'Cty Minh An', dt: 686000 },
+           { ngay: 22, sl: 12000, hd: '01944', kh: 'Cty Hải Thuận', dt: 588000 },
+           { ngay: 28, sl: 5000, hd: '01945', kh: 'Cty Tuấn Việt', dt: 245000 }]
+  },
+  khac: { 811: 15700, 711: 22000, 635: 18100 },
+  thueSuat: 0.2
+};
+
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+const DE_HOANG_ANH = (() => {
+  const d = clone(DE_QUOC_AN);
+  d.id = 'hoanganh'; d.ma = 'HA'; d.ten = 'Hoàng Anh (đề gốc)'; d.cty = 'Hoàng Anh';
+  d.ltt = 2812; d.quyKT = 55500;
+  d.vl[0] = { ...d.vl[0], ma: '1521T', ten: 'T', tonSL: 42000, tonTT: 637600,
+    nhap: [{ ngay: 2, sl: 100000, dg: 10.15, cp: 1000, tt: 'chưa trả tiền người bán, chi phí vận chuyển 1.000 trả bằng TGNH' }] };
+  d.vl[1] = { ...d.vl[1], ma: '1521U', ten: 'U', tonSL: 65000, tonTT: 791600,
+    nhap: [{ ngay: 5, sl: 30000, dg: 9.28, cp: 0, tt: 'đã thanh toán bằng chuyển khoản' }] };
+  d.vl[2] = { ...d.vl[2], ma: '1522N', ten: 'N', tonSL: 15700 };
+  d.dd = { 1521: 8512, 1522: 4361, 622: 3782, 627: 3091 };
+  d.spHT = 100000; d.spDD = 29500; d.mucDo = 40;
+  return d;
+})();
+
+/* Làm tròn giống Excel khi so sánh — giữ nguyên số thực, chỉ dùng khi hiển thị */
+function tinhDe(d) {
+  const nc = d.ngayCong, ltt = d.ltt;
+  const out = { nhom: {}, tong: {} };
+  const cols = ['H', 'J', 'L', 'M', 'tu', 'O', 'P', 'Q', 'R', 'S'];
+  const bhDT = d.nv.bh.filter(p => !p.tongDT).reduce((s, p) => s + (p.sp || 0), 0);
+  for (const k of ['sxql', 'sx', 'ql', 'bh']) {
+    const rows = d.nv[k].map(p0 => {
+      const p = { ...p0 };
+      if (p.tongDT) p.sp = bhDT;
+      const hsTong = (p.hs || 0) + (p.pc || 0);
+      p.nghiCong = nc - p.cong;
+      p.H = (p.sp || 0) * (p.dg || 0);
+      p.J = hsTong * ltt / nc * p.cong;
+      p.L = hsTong * ltt / nc * p.nghiCong;
+      p.M = p.H + p.J + p.L;
+      p.O = p.J * 0.08; p.P = p.J * 0.015; p.Q = p.J * 0.01;
+      p.R = p.O + p.P + p.Q;
+      p.S = p.M - p.tu - p.R;
+      return p;
+    });
+    const sum = {};
+    for (const c of cols) sum[c] = rows.reduce((s, p) => s + p[c], 0);
+    out.nhom[k] = { rows, sum };
+  }
+  for (const c of cols) out.tong[c] = ['sxql', 'sx', 'ql', 'bh'].reduce((s, k) => s + out.nhom[k].sum[c], 0);
+
+  // Bảng phân bổ tiền lương & BHXH
+  const TK = { 622: 'sx', 627: 'sxql', 641: 'bh', 642: 'ql' };
+  const bpb = {};
+  for (const tk of [622, 627, 641, 642]) {
+    const g = out.nhom[TK[tk]].sum;
+    const r = { luong: g.M - g.L, bhxh: 0, thuong: 0 };
+    r.c334 = r.luong;
+    r.kpcd = g.J * 0.02; r.xh = g.J * 0.175; r.yt = g.J * 0.03; r.tn = g.J * 0.01;
+    r.c338 = r.kpcd + r.xh + r.yt + r.tn;
+    r.tongCong = r.c334 + r.c338;
+    bpb[tk] = r;
+  }
+  bpb[3383] = { luong: 0, bhxh: out.tong.L, thuong: 0, c334: out.tong.L, kpcd: 0, xh: 0, yt: 0, tn: 0, c338: 0, tongCong: out.tong.L };
+  bpb[3531] = { luong: 0, bhxh: 0, thuong: d.quyKT, c334: d.quyKT, kpcd: 0, xh: 0, yt: 0, tn: 0, c338: 0, tongCong: d.quyKT };
+  bpb[334] = { luong: 0, bhxh: 0, thuong: 0, c334: 0, kpcd: 0, xh: out.tong.O, yt: out.tong.P, tn: out.tong.Q };
+  bpb[334].c338 = out.tong.R; bpb[334].tongCong = out.tong.R;
+  const bt = {};
+  for (const c of ['luong', 'bhxh', 'thuong', 'c334', 'kpcd', 'xh', 'yt', 'tn', 'c338', 'tongCong'])
+    bt[c] = Object.values(bpb).reduce((s, r) => s + r[c], 0);
+  out.bpb = bpb; out.bpbTong = bt;
+
+  // Vật liệu — bình quân cả kỳ dự trữ
+  out.vl = d.vl.map(v => {
+    const nhap = v.nhap.map(n => ({ ...n, tien: n.sl * n.dg + (n.cp || 0) }));
+    const nhapSL = nhap.reduce((s, n) => s + n.sl, 0);
+    const nhapTT = nhap.reduce((s, n) => s + n.tien, 0);
+    const bq = (v.tonTT + nhapTT) / (v.tonSL + nhapSL);
+    const xuatSL = v.xuat.reduce((s, x) => s + x.sl, 0);
+    const xuat = v.xuat.map(x => ({ ...x, tien: x.sl * bq }));
+    const xuatTT = xuatSL * bq;
+    return { ...v, nhap, nhapSL, nhapTT, bq, xuat, xuatSL, xuatTT,
+      cuoiSL: v.tonSL + nhapSL - xuatSL, cuoiTT: v.tonTT + nhapTT - xuatTT };
+  });
+  const xuatChinh = out.vl.filter(v => v.loai === 'chinh').reduce((s, v) => s + v.xuatTT, 0);
+  const xuatPhu = out.vl.filter(v => v.loai === 'phu').reduce((s, v) => s + v.xuatTT, 0);
+  out.c621 = { 1521: xuatChinh, 1522: xuatPhu, tong: xuatChinh + xuatPhu };
+
+  // Khấu hao
+  const N = d.ngayThang;
+  const khItem = a => ({ ...a, soNgay: N - a.ngay + 1, kh: a.ng / a.nam / 12 / N * (N - a.ngay + 1) });
+  const tang = d.kh.tang.map(khItem), giam = d.kh.giam.map(khItem);
+  const kh = { tang, giam, bp: {} };
+  for (const bp of [627, 641, 642]) {
+    const t = tang.filter(a => a.bp === bp).reduce((s, a) => s + a.kh, 0);
+    const g = giam.filter(a => a.bp === bp).reduce((s, a) => s + a.kh, 0);
+    kh.bp[bp] = { truoc: d.kh.truoc[bp], tang: t, giam: g, phaiTrich: d.kh.truoc[bp] + t - g };
+  }
+  kh.tongTang = tang.reduce((s, a) => s + a.kh, 0);
+  kh.tongGiam = giam.reduce((s, a) => s + a.kh, 0);
+  kh.tongPhaiTrich = [627, 641, 642].reduce((s, bp) => s + kh.bp[bp].phaiTrich, 0);
+  out.kh = kh;
+
+  // Sổ chi phí
+  const cp = bp => ({ l334: bpb[bp].c334, l338: bpb[bp].c338, k214: kh.bp[bp].phaiTrich, d112: d.dien[bp] });
+  out.c622 = { l334: bpb[622].c334, l338: bpb[622].c338 };
+  out.c622.tong = out.c622.l334 + out.c622.l338;
+  for (const bp of [627, 641, 642]) {
+    const c = cp(bp); c.tong = c.l334 + c.l338 + c.k214 + c.d112; out['c' + bp] = c;
+  }
+
+  // Giá thành (SP dở dang theo mức độ hoàn thành tương đương; VL chính tính theo SP thực)
+  const HT = d.spHT, DD = d.spDD, m = d.mucDo / 100;
+  const gtRow = (dau, ps, chinh) => {
+    const cuoi = chinh ? (dau + ps) / (HT + DD) * DD : (dau + ps) / (HT + DD * m) * DD * m;
+    const tong = dau + ps - cuoi;
+    return { dau, ps, cuoi, tong, dv: tong / HT };
+  };
+  const gt = {
+    1521: gtRow(d.dd[1521], out.c621[1521], true),
+    1522: gtRow(d.dd[1522], out.c621[1522], false),
+    622: gtRow(d.dd[622], out.c622.tong, false),
+    627: gtRow(d.dd[627], out.c627.tong, false)
+  };
+  gt.tong = {};
+  for (const c of ['dau', 'ps', 'cuoi', 'tong', 'dv']) gt.tong[c] = gt[1521][c] + gt[1522][c] + gt[622][c] + gt[627][c];
+  out.gt = gt;
+  out.c154 = { dau: gt.tong.dau, ps: gt.tong.ps, htanh: gt.tong.tong, cuoi: gt.tong.dau + gt.tong.ps - gt.tong.tong };
+
+  // Thành phẩm 155 — bình quân cả kỳ
+  const gdv = gt.tong.dv;
+  const tpNhap = d.tp.nhap.map(n => ({ ...n, dg: gdv, tien: n.sl * gdv }));
+  const nSL = tpNhap.reduce((s, n) => s + n.sl, 0), nTT = tpNhap.reduce((s, n) => s + n.tien, 0);
+  const bq155 = (d.tp.tonTT + nTT) / (d.tp.tonSL + nSL);
+  const tpXuat = d.tp.xuat.map(x => ({ ...x, gv: x.sl * bq155, dgBan: x.dt / x.sl }));
+  const xSL = tpXuat.reduce((s, x) => s + x.sl, 0);
+  out.tp = { nhap: tpNhap, nhapSL: nSL, nhapTT: nTT, bq: bq155, xuat: tpXuat, xuatSL: xSL, xuatTT: xSL * bq155,
+    cuoiSL: d.tp.tonSL + nSL - xSL, cuoiTT: d.tp.tonTT + nTT - xSL * bq155 };
+  out.c632 = out.tp.xuatTT;
+  out.c511 = tpXuat.reduce((s, x) => s + x.dt, 0);
+
+  // 911 & KQKD
+  const k = {};
+  k.dt = out.c511; k.gv = out.c632; k.lng = k.dt - k.gv;
+  k.cptc = d.khac[635]; k.cpbh = out.c641.tong; k.cpql = out.c642.tong;
+  k.lnt = k.lng - k.cptc - k.cpbh - k.cpql;
+  k.tnk = d.khac[711]; k.cpk = d.khac[811]; k.kqk = k.tnk - k.cpk;
+  k.lntt = k.lnt + k.kqk;
+  k.thue = k.lntt > 0 ? k.lntt * d.thueSuat : 0;
+  k.lnst = k.lntt - k.thue;
+  k.psNo = k.gv + k.cptc + k.cpbh + k.cpql + k.cpk + k.thue + k.lnst;
+  k.psCo = k.dt + k.tnk;
+  out.kq = k;
+  return out;
+}
+
+/* ===== Sinh đề ngẫu nhiên ===== */
+function rng(seed) {
+  let a = seed >>> 0;
+  return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+
+function taoDe(seed) {
+  const r = rng(seed);
+  const ri = (a, b) => a + Math.floor(r() * (b - a + 1));
+  const pick = arr => arr[Math.floor(r() * arr.length)];
+  const d = clone(DE_QUOC_AN);
+  d.id = 'r' + seed; d.seed = seed; d.ma = String(seed);
+  d.cty = pick(['Minh Phát', 'An Khánh', 'Hưng Thịnh', 'Bảo Long', 'Thành Công', 'Phúc Lâm', 'Việt Tiến', 'Đại Dương', 'Hòa Bình', 'Tân Phú']);
+  d.ten = 'Đề ngẫu nhiên số ' + seed;
+  const nghiCN = r() < 0.35;
+  d.ngayCong = nghiCN ? 26 : 22; d.nghi = nghiCN ? 'Chủ nhật' : 'Thứ 7 và Chủ nhật';
+  d.ltt = ri(2300, 2990);
+  d.quyKT = ri(40, 120) * 500;
+  const nc = d.ngayCong;
+  for (const k of ['sxql', 'sx', 'ql', 'bh']) for (const p of d.nv[k]) {
+    p.cong = r() < 0.4 ? nc : ri(nc - 5, nc - 1);
+    if (k === 'sx') { p.sp = ri(18, 50) * 100; p.dg = pick([0.4, 0.5, 0.5, 0.6]); p.tu = pick([500, 1000, 1000, 1500]); }
+    if (k === 'bh' && !p.tongDT) { p.sp = ri(5, 30) * 10000; p.dg = pick([0.008, 0.009, 0.01, 0.011, 0.012]); }
+  }
+  const bo = pick([['Sắt', 'Gỗ', 'Mùn cưa', 'S', 'G', 'M'], ['Thép', 'Nhôm', 'Sơn', 'T', 'N', 'S'], ['Vải', 'Bông', 'Chỉ', 'V', 'B', 'C'], ['Nhựa', 'Kẽm', 'Keo', 'N', 'K', 'K'], ['T', 'U', 'N', 'T', 'U', 'N']]);
+  const mkVL = (i, loai, giaCo) => {
+    const tonSL = ri(30, 80) * 1000;
+    const tonTT = Math.round(tonSL * giaCo * (0.95 + r() * 0.1) / 10) * 10;
+    return { ma: (loai === 'chinh' ? '1521' : '1522') + bo[i + 3], ten: bo[i], loai, tonSL, tonTT, nhap: [], xuat: [] };
+  };
+  const g1 = ri(80, 120) / 10, g2 = ri(80, 120) / 10, g3 = ri(25, 45) / 10;
+  const v1 = mkVL(0, 'chinh', g1), v2 = mkVL(1, 'chinh', g2), v3 = mkVL(2, 'phu', g3);
+  const cpvc = ri(3, 15) * 100;
+  v1.nhap = [{ ngay: ri(1, 4), sl: ri(80, 120) * 1000, dg: Math.round(g1 * (1 + (r() - 0.4) * 0.1) * 100) / 100, cp: cpvc,
+    tt: 'chưa trả tiền người bán, chi phí vận chuyển ' + cpvc.toLocaleString('vi-VN') + ' trả bằng TGNH' }];
+  v2.nhap = [{ ngay: ri(5, 7), sl: ri(20, 45) * 1000, dg: Math.round(g2 * (1 + (r() - 0.4) * 0.1) * 100) / 100, cp: 0, tt: 'đã thanh toán bằng chuyển khoản' }];
+  v3.nhap = [{ ngay: ri(9, 11), sl: ri(15, 30) * 1000, dg: Math.round(g3 * 100 + ri(-10, 10)) / 100, cp: 0, tt: 'chưa trả tiền người bán' },
+             { ngay: ri(12, 14), sl: ri(8, 15) * 1000, dg: Math.round(g3 * 100 + ri(-10, 10)) / 100, cp: 0, tt: 'chưa trả tiền người bán' }];
+  const du1 = v1.tonSL + v1.nhap[0].sl, du2 = v2.tonSL + v2.nhap[0].sl, du3 = v3.tonSL + v3.nhap[0].sl + v3.nhap[1].sl;
+  const x1 = Math.floor(du1 * (0.5 + r() * 0.3) / 1000) * 1000, x1a = Math.floor(x1 * (0.7 + r() * 0.2) / 1000) * 1000;
+  v1.xuat = [{ ngay: ri(8, 9), sl: x1a }, { ngay: ri(15, 17), sl: x1 - x1a }];
+  v2.xuat = [{ ngay: ri(18, 20), sl: Math.floor(du2 * (0.6 + r() * 0.3) / 1000) * 1000 }];
+  v3.xuat = [{ ngay: ri(23, 27), sl: Math.floor(du3 * (0.2 + r() * 0.3) / 500) * 500 }];
+  d.vl = [v1, v2, v3];
+  d.kh = {
+    truoc: { 627: ri(3000, 6500), 641: ri(1000, 2500), 642: ri(2000, 4500) },
+    tang: [pick([{ ten: 'Xe tải cho phân xưởng', bp: 627 }, { ten: 'Dây chuyền sản xuất', bp: 627 }, { ten: 'Ô tô giao hàng cho BP bán hàng', bp: 641 }, { ten: 'Máy tính cho văn phòng', bp: 642 }])],
+    giam: [{ ten: 'Thanh lý máy photo của BP bán hàng', bp: 641 }, { ten: 'Thanh lý máy xúc của phân xưởng', bp: 627 }]
+  };
+  Object.assign(d.kh.tang[0], { ng: ri(12, 36) * 10000, nam: pick([8, 10, 12, 15]), ngay: ri(2, 12) });
+  Object.assign(d.kh.giam[0], { ng: ri(20, 60) * 1000, nam: pick([4, 5, 6]), ngay: ri(5, 25) });
+  Object.assign(d.kh.giam[1], { ng: ri(10, 25) * 10000, nam: pick([10, 12]), ngay: ri(5, 25) });
+  d.dien = { 627: ri(3000, 6000), 641: ri(1500, 3000), 642: ri(2500, 4500) };
+  d.dd = { 1521: ri(40, 95) * 100, 1522: ri(15, 45) * 100, 622: ri(25, 45) * 100, 627: ri(20, 35) * 100 };
+  d.spTen = pick(['X', 'A', 'B', 'K']);
+  d.spHT = ri(60, 110) * 1000; d.spDD = ri(30, 60) * 500; d.mucDo = pick([20, 25, 30, 40, 50]);
+  const nhapTP = Math.floor(d.spHT * (0.6 + r() * 0.35) / 1000) * 1000;
+  const n1 = Math.floor(nhapTP * 0.55 / 1000) * 1000, n2 = Math.floor(nhapTP * 0.3 / 1000) * 1000;
+  d.tp.nhap = [{ ngay: 2, sl: n1 }, { ngay: 5, sl: n2 }, { ngay: 18, sl: nhapTP - n1 - n2 }];
+  d.tp.tonSL = ri(10, 20) * 1000; d.tp.tonTT = 0;
+  const gdv = tinhDe(d).gt.tong.dv;
+  d.tp.tonTT = Math.round(d.tp.tonSL * gdv * (0.9 + r() * 0.3) / 10) * 10;
+  const coTheXuat = d.tp.tonSL + nhapTP;
+  const xTong = Math.floor(coTheXuat * (0.6 + r() * 0.3) / 1000) * 1000;
+  const a = Math.floor(xTong * 0.4 / 1000) * 1000, b = Math.floor(xTong * 0.25 / 1000) * 1000, c = Math.floor(xTong * 0.22 / 1000) * 1000;
+  const gia = Math.round(gdv * (1.6 + r() * 0.6));
+  const kh = ['thu bằng TGNH', 'Cty Minh An', 'Cty Hải Thuận', 'Cty Tuấn Việt'];
+  d.tp.xuat = [a, b, c, xTong - a - b - c].map((sl, i) => ({ ngay: [12, 13, 22, 28][i], sl, hd: '0194' + (2 + i), kh: kh[i], dt: sl * gia }));
+  d.khac = { 811: ri(50, 250) * 100, 711: ri(80, 300) * 100, 635: ri(50, 250) * 100 };
+  return d;
+}
+
+if (typeof module !== 'undefined') module.exports = { tinhDe, taoDe, DE_QUOC_AN, DE_HOANG_ANH };
+
+/* ===== Hàm tài chính (cùng quy ước với Excel) ===== */
+const F = {
+  PV(r, n, pmt = 0, fv = 0, t = 0) {
+    if (r === 0) return -(fv + pmt * n);
+    const q = Math.pow(1 + r, n);
+    return -(fv + pmt * (1 + r * t) * (q - 1) / r) / q;
+  },
+  FV(r, n, pmt = 0, pv = 0, t = 0) {
+    if (r === 0) return -(pv + pmt * n);
+    const q = Math.pow(1 + r, n);
+    return -(pv * q + pmt * (1 + r * t) * (q - 1) / r);
+  },
+  PMT(r, n, pv, fv = 0, t = 0) {
+    if (r === 0) return -(pv + fv) / n;
+    const q = Math.pow(1 + r, n);
+    return -(pv * q + fv) * r / ((1 + r * t) * (q - 1));
+  },
+  NPER(r, pmt, pv, fv = 0, t = 0) {
+    if (r === 0) return -(pv + fv) / pmt;
+    const a = pmt * (1 + r * t) / r;
+    return Math.log((a - fv) / (a + pv)) / Math.log(1 + r);
+  },
+  RATE(n, pmt, pv, fv = 0, t = 0, g = 0.1) {
+    let r = g;
+    for (let i = 0; i < 200; i++) {
+      const f = x => (x === 0 ? pv + pmt * n + fv : pv * Math.pow(1 + x, n) + pmt * (1 + x * t) * (Math.pow(1 + x, n) - 1) / x + fv);
+      const y = f(r), d = (f(r + 1e-7) - y) / 1e-7;
+      const nr = r - y / d;
+      if (Math.abs(nr - r) < 1e-12) return nr;
+      r = nr;
+    }
+    return r;
+  },
+  NPV(r, ...v) { return v.flat().reduce((s, x, i) => s + x / Math.pow(1 + r, i + 1), 0); },
+  IRR(v, g = 0.1) {
+    let r = g;
+    for (let i = 0; i < 500; i++) {
+      const f = x => v.reduce((s, c, k) => s + c / Math.pow(1 + x, k), 0);
+      const y = f(r), d = (f(r + 1e-7) - y) / 1e-7;
+      const nr = r - y / d;
+      if (Math.abs(nr - r) < 1e-12) return nr;
+      r = nr;
+    }
+    return r;
+  },
+  FVSCHEDULE(p, s) { return s.reduce((a, r) => a * (1 + r), p); },
+  SLN(c, s, l) { return (c - s) / l; },
+  SYD(c, s, l, p) { return (c - s) * (l - p + 1) * 2 / (l * (l + 1)); },
+  DB(c, s, l, p, m = 12) {
+    const rate = Math.round((1 - Math.pow(s / c, 1 / l)) * 1000) / 1000;
+    let tong = c * rate * m / 12;
+    if (p === 1) return tong;
+    for (let i = 2; i <= p; i++) {
+      let kh = (c - tong) * rate;
+      if (i === l + 1) kh = (c - tong) * rate * (12 - m) / 12;
+      if (i === p) return kh;
+      tong += kh;
+    }
+  },
+  DDB(c, s, l, p, f = 2) {
+    let rate = f / l, old;
+    if (rate >= 1) { rate = 1; old = p === 1 ? c : 0; } else old = c * Math.pow(1 - rate, p - 1);
+    const nw = c * Math.pow(1 - rate, p);
+    const kh = nw < s ? old - s : old - nw;
+    return Math.max(kh, 0);
+  },
+  _vdb(c, s, l, l1, per, f) {
+    let v = 0, sln = 0, now = false, con = c - s;
+    const end = Math.ceil(per);
+    for (let i = 1; i <= end; i++) {
+      let term;
+      if (!now) {
+        const ddb = F.DDB(c, s, l, i, f);
+        sln = con / (l1 - (i - 1));
+        if (sln > ddb) { term = sln; now = true; } else { term = ddb; con -= ddb; }
+      } else term = sln;
+      if (i === end) term *= per + 1 - end;
+      v += term;
+    }
+    return v;
+  },
+  VDB(c, s, l, st, en, f = 2, noSwitch = false) {
+    if (noSwitch) {
+      let v = 0; const a = Math.floor(st), b = Math.ceil(en);
+      for (let i = a + 1; i <= b; i++) {
+        let t = F.DDB(c, s, l, i, f);
+        if (i === a + 1) t *= Math.min(en, a + 1) - st; else if (i === b) t *= en + 1 - b;
+        v += t;
+      }
+      return v;
+    }
+    if (st !== Math.floor(st) && f > 1 && st >= l / 2) { const part = st - l / 2; st = l / 2; en -= part; l += 1; }
+    const c2 = c - F._vdb(c, s, l, l, st, f);
+    return F._vdb(c2, s, l, l - st, en - st, f);
+  },
+  // ngày: chuỗi 'yyyy-mm-dd'
+  _d(s) { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d) / 864e5; },
+  _yf(a, b, basis) {
+    const d1 = F._d(a), d2 = F._d(b);
+    if (basis === 2) return (d2 - d1) / 360;
+    if (basis === 3) return (d2 - d1) / 365;
+    if (basis === 1) return (d2 - d1) / 365.25;
+    const [y1, m1, dd1] = a.split('-').map(Number), [y2, m2, dd2] = b.split('-').map(Number);
+    let x = Math.min(dd1, 30), y = dd2;
+    if (basis === 4) y = Math.min(dd2, 30); else if (x === 30 && y === 31) y = 30;
+    return ((y2 - y1) * 360 + (m2 - m1) * 30 + (y - x)) / 360;
+  },
+  _days(a, b, basis) { return basis === 0 || basis === 4 ? F._yf(a, b, basis) * 360 : F._d(b) - F._d(a); },
+  _B(basis) { return basis === 3 ? 365 : 360; },
+  ACCRINTM(iss, st, rate, par = 1000, basis = 0) { return par * rate * F._yf(iss, st, basis); },
+  INTRATE(st, mat, inv, red, basis = 0) { return (red - inv) / inv / F._yf(st, mat, basis); },
+  RECEIVED(st, mat, inv, disc, basis = 0) { return inv / (1 - disc * F._yf(st, mat, basis)); },
+  DISC(st, mat, pr, red, basis = 0) { return (red - pr) / red / F._yf(st, mat, basis); },
+  PRICEMAT(st, mat, iss, rate, yld, basis = 0) {
+    const B = F._B(basis), dim = F._days(iss, mat, basis), dsm = F._days(st, mat, basis), a = F._days(iss, st, basis);
+    return (100 + dim / B * rate * 100) / (1 + dsm / B * yld) - a / B * rate * 100;
+  }
+};
+if (typeof module !== 'undefined') module.exports = F;
+
+/* ===== Điền số liệu một đề vào file mẫu của cô (DE ON TAP TIN UDKT.xlsx) ===== */
+function dienFileMau(wb, d) {
+  const vn = n => Number(n).toLocaleString('vi-VN', { maximumFractionDigits: 4 });
+  const th = d.thang;
+  const ws = n => { const s = wb.getWorksheet(n); if (!s) throw new Error('Thiếu sheet ' + n); return s; };
+  const set = (sheet, addr, v) => { sheet.getCell(addr).value = v; };
+
+  // Câu hỏi
+  const q = ws('Câu hỏi');
+  const [v1, v2, v3] = d.vl;
+  set(q, 'A1', `Có số liệu của công ty ${d.cty} như sau:  (Mã đề: ${d.ma})`);
+  set(q, 'A8', `Doanh nghiệp mua ngoài 3 loại vật liệu: Vật liệu chính là ${v1.ten}, ${v2.ten}; vật liệu phụ là ${v3.ten}`);
+  [v1, v2, v3].forEach((v, i) => set(q, 'A' + (9 + i), `+ ${v.ten}   ${vn(v.tonSL)} Kg -  ${vn(v.tonTT)}`));
+  const nv = [];
+  d.vl.forEach(v => {
+    v.nhap.forEach(n => nv.push([n.ngay, `+ Ngày ${n.ngay}/${th} mua ${vn(n.sl)} Kg ${v.ten}, đơn giá mua là ${vn(n.dg)}; ${n.tt}.`]));
+    v.xuat.forEach(x => nv.push([x.ngay, `+ Ngày ${x.ngay}/${th} xuất ${vn(x.sl)} Kg ${v.ten} cho sản xuất sản phẩm.`]));
+  });
+  nv.sort((a, b) => a[0] - b[0]);
+  if (nv.length !== 8) throw new Error('Đề mẫu chỉ có 8 dòng nghiệp vụ vật liệu');
+  nv.forEach(([, t], i) => set(q, 'A' + (13 + i), t));
+  set(q, 'A22', `1.    Hãy lập Bảng thanh toán lương tháng ${th} cho người lao động với lương tối thiểu là ${vn(d.ltt)}; biết Công ty nghỉ ${d.nghi}.`);
+  set(q, 'A23', `2.    Hãy lập Bảng phân bổ lương và các khoản bảo hiểm xã hội biết Quỹ khen thưởng tháng ${th} là ${vn(d.quyKT)}.`);
+
+  // Btt-Luong: dòng của từng nhóm trong file mẫu
+  const b = ws('Btt-Luong');
+  const rows = { sxql: [8, 9], sx: [11, 21], ql: [24, 29], bh: [32, 36] };
+  for (const k of Object.keys(rows)) {
+    const [r0, r1] = rows[k];
+    d.nv[k].forEach((p, i) => {
+      const r = r0 + i; if (r > r1) throw new Error('Quá số dòng nhóm ' + k);
+      set(b, 'D' + r, p.hs); set(b, 'E' + r, p.pc || null);
+      if (k === 'sx' || (k === 'bh' && !p.tongDT)) set(b, 'F' + r, p.sp);
+      if (k === 'sx' || k === 'bh') set(b, 'G' + r, p.dg);
+      set(b, 'I' + r, p.cong); set(b, 'N' + r, p.tu);
+    });
+  }
+
+  // Khấu hao
+  const k = ws('Pbo-kh');
+  set(k, 'G9', d.kh.truoc[627]); set(k, 'H9', d.kh.truoc[641]); set(k, 'I9', d.kh.truoc[642]);
+  const t = d.kh.tang[0];
+  set(k, 'C11', `- ${t.ten}\n(mua ngày ${t.ngay}/${th})`); set(k, 'D11', t.nam); set(k, 'E11', t.ng);
+  d.kh.giam.forEach((g, i) => { const r = 13 + i; set(k, 'C' + r, `- ${g.ten} ngày ${g.ngay}/${th}`); set(k, 'D' + r, g.nam); set(k, 'E' + r, g.ng); });
+
+  // Tiền điện
+  set(ws('Ct-627'), 'G12', d.dien[627]); set(ws('Ct-641'), 'G12', d.dien[641]); set(ws('Ct-642'), 'G12', d.dien[642]);
+
+  // Dở dang, giá thành
+  const c154 = ws('Ct-154');
+  set(c154, 'H8', d.dd[1521]); set(c154, 'I8', d.dd[1522]); set(c154, 'J8', d.dd[622]); set(c154, 'K8', d.dd[627]);
+  const gt = ws('B-TGTSP');
+  set(gt, 'B2', `BẢNG TÍNH GIÁ THÀNH SP ${d.spTen}`);
+  set(gt, 'B3', `Số sản phẩm hoàn thành: ${vn(d.spHT)} sản phẩm`);
+  set(gt, 'B4', `Số sản phẩm dở dang ${vn(d.spDD)} sản phẩm; mức độ hoàn thành ${d.mucDo}%`);
+
+  // Thành phẩm, giá vốn, doanh thu
+  const dd2 = n => String(n).padStart(2, '0') + '/' + String(th).padStart(2, '0');
+  const c155 = ws('Ct-155');
+  set(c155, 'K11', d.tp.tonSL); set(c155, 'L11', d.tp.tonTT);
+  const ev = [...d.tp.nhap.map(n => ({ ngay: n.ngay, t: `Nhập kho ${n.sl} SP`, x: null })), ...d.tp.xuat.map(x => ({ ngay: x.ngay, t: `Xuất kho ${x.sl} SP`, x: x.sl }))].sort((a, b) => a.ngay - b.ngay);
+  if (ev.length !== 7) throw new Error('Đề mẫu chỉ có 7 dòng nhập xuất thành phẩm');
+  ev.forEach((e, i) => { const r = 13 + i; set(c155, 'C' + r, dd2(e.ngay)); set(c155, 'D' + r, e.t); set(c155, 'I' + r, e.x); });
+  const c632 = ws('Ct-632'), c511 = ws('Ct-511');
+  d.tp.xuat.forEach((x, i) => {
+    const r = 7 + i, txt = x.kh === 'thu bằng TGNH' ? 'Xuất bán TP thu =TGNH' : 'Xuất bán cho ' + x.kh;
+    for (const s of [c632, c511]) { set(s, 'C' + r, 'HĐ - ' + x.hd); set(s, 'D' + r, dd2(x.ngay)); set(s, 'E' + r, txt); }
+    set(c511, 'I' + r, x.dt);
+  });
+  const c911 = ws('Ct-911');
+  set(c911, 'G9', d.khac[811]); set(c911, 'G10', d.khac[711]); set(c911, 'G11', d.khac[635]);
+
+  // Bỏ kết quả cũ của mọi ô công thức để Excel tính lại khi mở
+  wb.eachSheet(s => s.eachRow({ includeEmpty: false }, row => row.eachCell({ includeEmpty: false }, c => {
+    const v = c.value;
+    if (v && typeof v === 'object' && (v.formula || v.sharedFormula)) c.value = v.formula ? { formula: v.formula } : { sharedFormula: v.sharedFormula };
+  })));
+  wb.calcProperties = { ...(wb.calcProperties || {}), fullCalcOnLoad: true };
+  return wb;
+}
+if (typeof module !== 'undefined') module.exports = { dienFileMau };
+
+
+/* ===== Tiện ích ===== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function fmt(v, dec) {
+  if (v == null || isNaN(v)) return '—';
+  if (dec == null) dec = Math.abs(v) < 100 ? 4 : 2;
+  return v.toLocaleString('vi-VN', { maximumFractionDigits: dec });
+}
+function parseNum(s) {
+  s = String(s || '').trim().replace(/[\s%đ$]/g, '');
+  if (!s) return null;
+  const out = [];
+  const add = t => { const n = Number(t); if (isFinite(n)) out.push({ n, dec: (t.split('.')[1] || '').length }); };
+  const dots = (s.match(/\./g) || []).length, commas = (s.match(/,/g) || []).length;
+  if (dots && commas) {
+    const last = Math.max(s.lastIndexOf('.'), s.lastIndexOf(','));
+    const dec = s[last], th = dec === '.' ? ',' : '.';
+    add(s.split(th).join('').replace(dec, '.'));
+  } else if (dots > 1) add(s.replace(/\./g, ''));
+  else if (commas > 1) add(s.replace(/,/g, ''));
+  else if (dots + commas === 1) {
+    add(s.replace(',', '.'));
+    if (/^-?\d{1,3}[.,]\d{3}$/.test(s)) add(s.replace(/[.,]/, '')); // "902.580" cũng có thể là 902580
+  } else add(s);
+  return out.length ? out : null;
+}
+function cham(raw, v, pct) {
+  const ps = parseNum(raw);
+  if (!ps) return 'empty';
+  const cands = [];
+  for (const p of ps) { cands.push([p.n, p.dec]); if (pct) cands.push([p.n * 100, Math.max(p.dec - 2, 0)]); }
+  let best = 'bad';
+  for (const [x, dec] of cands) {
+    let tolDec = 0.5 * Math.pow(10, -dec);
+    if (Math.abs(v) < 1000) tolDec = Math.min(tolDec, 0.0051);
+    const tol = Math.max(tolDec, Math.abs(v) * 1e-5, 1e-9);
+    if (Math.abs(x - v) <= tol) return 'ok';
+    if (Math.abs(Math.abs(x) - Math.abs(v)) <= tol) best = 'sign';
+    else if (best === 'bad' && Math.abs(x - v) <= Math.abs(v) * 0.01) best = 'near';
+  }
+  return best;
+}
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('ontk:' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('ontk:' + k, JSON.stringify(v)); } catch (e) {} }
+};
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 1800); }
+function table(head, rows, cls = '') {
+  return `<div class="tbl"><table class="${cls}"><thead><tr>${head.map(h => `<th class="${h.n ? 'n' : ''}">${h.t ?? h}</th>`).join('')}</tr></thead><tbody>${rows.map(r =>
+    `<tr class="${r.cls || ''}">${r.c.map((c, i) => `<td class="${head[i] && head[i].n ? 'n' : ''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+const N = t => ({ t, n: true });
+const MSG = { ok: '✓', bad: '✗', near: '≈', sign: '±', empty: '' };
+const FB = { near: 'Gần đúng (lệch dưới 1%) — xem lại cách làm tròn hoặc một khoản nhỏ bị sót.', sign: 'Đúng độ lớn nhưng ngược dấu so với Excel.', bad: 'Chưa đúng.' };
+
+/* ===== Tabs ===== */
+function moTab(id) {
+  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === id));
+  document.querySelectorAll('section.pane').forEach(s => s.hidden = s.id !== 'p-' + id);
+  store.set('tab', id);
+}
+document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => { moTab(b.dataset.tab); history.replaceState(null, '', '#' + b.dataset.tab); });
+
+/* ===== Luyện đề ===== */
+let DE, KQ, SECTIONS, ANS;
+function layDe(kind) {
+  if (kind === 'quocan') return DE_QUOC_AN;
+  if (kind === 'hoanganh') return DE_HOANG_ANH;
+  const seed = store.get('seed', 0) || (Math.floor(Math.random() * 9000) + 1000);
+  store.set('seed', seed);
+  return taoDe(seed);
+}
+
+function renderDe(d) {
+  const o = KQ;
+  $('#deTieuDe').textContent = 'Đề bài – Công ty ' + d.cty;
+  const nvRow = (p, i, k) => ({ c: [i + 1, esc(p.ten), p.hs, p.pc || '', k === 'bh' ? (p.tongDT ? 'Tổng DT nhóm' : fmt(p.sp)) : (p.sp ? fmt(p.sp) : ''),
+    k === 'bh' ? (p.dg * 100).toLocaleString('vi-VN') + '%' : (p.dg || ''), p.cong, fmt(p.tu)] });
+  const nvRows = [];
+  const tenNhom = { sxql: 'I. Bộ phận sản xuất – quản lý phân xưởng', sx: 'I. Bộ phận sản xuất – công nhân trực tiếp', ql: 'II. Bộ phận quản lý doanh nghiệp', bh: 'III. Bộ phận bán hàng (lương theo doanh thu)' };
+  for (const k of ['sxql', 'sx', 'ql', 'bh']) { nvRows.push({ cls: 'grp', c: [tenNhom[k], '', '', '', '', '', '', ''] }); d.nv[k].forEach((p, i) => nvRows.push(nvRow(p, i, k))); }
+  const nghiepVu = [];
+  d.vl.forEach(v => { v.nhap.forEach(n => nghiepVu.push([n.ngay, `Mua ${fmt(n.sl)} kg ${v.ten}, đơn giá ${fmt(n.dg)}; ${n.tt}.`])); v.xuat.forEach(x => nghiepVu.push([x.ngay, `Xuất ${fmt(x.sl)} kg ${v.ten} cho sản xuất sản phẩm.`])); });
+  nghiepVu.sort((a, b) => a[0] - b[0]);
+  const bpTen = { 627: 'phân xưởng (627)', 641: 'bán hàng (641)', 642: 'quản lý DN (642)' };
+  $('#deBody').innerHTML = `
+    <div><h4>Thông tin chung</h4><p>Công ty ${esc(d.cty)} tính thuế GTGT khấu trừ, kê khai thường xuyên, giá xuất kho <b>bình quân cả kỳ dự trữ</b>, khấu hao đường thẳng, giá thành giản đơn, dở dang theo <b>sản lượng hoàn thành tương đương</b>. Tháng ${d.thang}/N.</p></div>
+    <div><h4>Yêu cầu</h4><ul>
+      <li>Lập Bảng thanh toán lương tháng ${d.thang} với lương tối thiểu <b class="num">${fmt(d.ltt)}</b>; công ty nghỉ ${d.nghi} → <b>${d.ngayCong} ngày công</b>.</li>
+      <li>Lập Bảng phân bổ lương và BHXH, biết Quỹ khen thưởng tháng ${d.thang} là <b class="num">${fmt(d.quyKT)}</b>.</li>
+      <li>Điền số liệu còn thiếu vào các biểu còn lại.</li></ul></div>
+    <div><h4>Bảng nhân viên</h4>${table(['TT', 'Họ tên', N('HS lương'), N('HS PC'), N('Số SP / Doanh thu'), N('Đơn giá / Tỷ lệ'), N('Số công'), N('Tạm ứng')], nvRows)}</div>
+    <div><h4>Tồn kho vật liệu đầu tháng</h4><ul>${d.vl.map(v => `<li>${esc(v.ten)} (${v.loai === 'chinh' ? 'VL chính 1521' : 'VL phụ 1522'}): <span class="num">${fmt(v.tonSL)} kg – ${fmt(v.tonTT)}</span></li>`).join('')}</ul></div>
+    <div><h4>Nhập, xuất vật liệu trong tháng</h4><ul>${nghiepVu.map(([ng, t]) => `<li>Ngày ${ng}/${d.thang}: ${t}</li>`).join('')}</ul></div>
+    <div><h4>Khấu hao TSCĐ</h4><ul>
+      <li>Số KH trích tháng trước: PX <span class="num">${fmt(d.kh.truoc[627])}</span>, BH <span class="num">${fmt(d.kh.truoc[641])}</span>, QLDN <span class="num">${fmt(d.kh.truoc[642])}</span>. Tháng có ${d.ngayThang} ngày.</li>
+      ${d.kh.tang.map(a => `<li>Tăng: ${esc(a.ten)} – nguyên giá <span class="num">${fmt(a.ng)}</span>, dùng ${a.nam} năm, mua ngày ${a.ngay}/${d.thang}.</li>`).join('')}
+      ${d.kh.giam.map(a => `<li>Giảm: ${esc(a.ten)} ngày ${a.ngay}/${d.thang} – nguyên giá <span class="num">${fmt(a.ng)}</span>, ${a.nam} năm.</li>`).join('')}</ul></div>
+    <div><h4>Chi phí khác trong tháng</h4><ul>
+      <li>Tiền điện trả bằng UNC: ${[627, 641, 642].map(b => `${bpTen[b]} <span class="num">${fmt(d.dien[b])}</span>`).join('; ')}.</li>
+      <li>Chi phí khác (811) <span class="num">${fmt(d.khac[811])}</span>; thu nhập khác (711) <span class="num">${fmt(d.khac[711])}</span>; chi phí tài chính (635) <span class="num">${fmt(d.khac[635])}</span>. Thuế TNDN ${d.thueSuat * 100}%.</li></ul></div>
+    <div><h4>Giá thành sản phẩm ${esc(d.spTen)}</h4><ul>
+      <li>Dở dang đầu kỳ: VL chính <span class="num">${fmt(d.dd[1521])}</span>, VL phụ <span class="num">${fmt(d.dd[1522])}</span>, nhân công <span class="num">${fmt(d.dd[622])}</span>, SX chung <span class="num">${fmt(d.dd[627])}</span>.</li>
+      <li>Hoàn thành <span class="num">${fmt(d.spHT)}</span> SP; dở dang <span class="num">${fmt(d.spDD)}</span> SP, mức độ hoàn thành ${d.mucDo}%.</li></ul></div>
+    <div><h4>Thành phẩm và bán hàng</h4><ul>
+      <li>Tồn đầu: <span class="num">${fmt(d.tp.tonSL)} SP – ${fmt(d.tp.tonTT)}</span></li>
+      ${[...d.tp.nhap.map(n => [n.ngay, `Nhập kho ${fmt(n.sl)} SP từ sản xuất.`]), ...d.tp.xuat.map(x => [x.ngay, `HĐ ${x.hd}: xuất bán ${fmt(x.sl)} SP (${esc(x.kh)}), doanh thu chưa thuế <span class="num">${fmt(x.dt)}</span>.`])]
+        .sort((a, b) => a[0] - b[0]).map(([ng, t]) => `<li>Ngày ${ng}/${d.thang}: ${t}</li>`).join('')}</ul></div>`;
+}
+
+function buildSections(d, o) {
+  const nc = d.ngayCong, L = d.ltt, g = o.nhom;
+  const nvB = g.sxql.rows[1], ttB = g.bh.rows[0], cnD = g.sx.rows[1];
+  const q = (id, label, v, f, sub) => ({ id, label, v, f, sub });
+  const v1 = o.vl[0], v2 = o.vl[1], v3 = o.vl[2];
+  const HT = d.spHT, DD = d.spDD, m = d.mucDo;
+  return [
+    { id: 's1', sheet: 'Btt-Luong', title: 'Bảng thanh toán lương', qs: [
+      q('nvB_J', `Lương thời gian – ${nvB.ten}`, nvB.J, `=(HS lương + HS PC) × ${L} / ${nc} × Số công\n=(${nvB.hs}+${nvB.pc})*${L}/${nc}*${nvB.cong}`),
+      q('nvB_L', `Lương nghỉ việc hưởng BHXH – ${nvB.ten}`, nvB.L, `Số công nghỉ = ${nc} − ${nvB.cong} = ${nvB.nghiCong}\n=(${nvB.hs}+${nvB.pc})*${L}/${nc}*${nvB.nghiCong}`),
+      q('nvB_S', `Kỳ II được lĩnh – ${nvB.ten}`, nvB.S, `= Tổng số − Tạm ứng − (8% + 1,5% + 1%) × Lương thời gian\n=${fmt(nvB.M)} − ${fmt(nvB.tu)} − ${fmt(nvB.R)}`),
+      q('cnD_M', `Tổng số (tổng lương) – ${cnD.ten}`, cnD.M, `= Lương SP (${fmt(cnD.sp)}×${cnD.dg}) + Lương thời gian + Lương nghỉ\n=${fmt(cnD.H)} + ${fmt(cnD.J)} + ${fmt(cnD.L)}`),
+      q('ttB_H', `Lương theo doanh thu – ${ttB.ten} (tổ trưởng)`, ttB.H, `Tổ trưởng hưởng ${(ttB.dg * 100).toLocaleString('vi-VN')}% trên tổng doanh thu của 4 nhân viên\n=${fmt(ttB.sp)}*${ttB.dg}`),
+      q('tH', 'Cộng cột Lương sản phẩm (số tiền)', o.tong.H, '= Tổng của 4 dòng “Tổng” các bộ phận (cột H)'),
+      q('tJ', 'Cộng cột Lương thời gian', o.tong.J, '=J(Tổng QLPX)+J(Tổng CNTT)+J(Tổng QLDN)+J(Tổng BH)'),
+      q('tL', 'Cộng cột Lương nghỉ việc hưởng BHXH', o.tong.L, 'Chú ý: người đi đủ công thì số công nghỉ = 0'),
+      q('tM', 'Tổng quỹ lương (cột Tổng số)', o.tong.M, '= Lương SP + Lương thời gian + Lương nghỉ'),
+      q('tR', 'Cộng các khoản khấu trừ vào lương', o.tong.R, '= 10,5% × Tổng lương thời gian (8% BHXH + 1,5% BHYT + 1% BHTN)'),
+      q('tS', 'Cộng kỳ II được lĩnh', o.tong.S, `= Tổng số − Tạm ứng (${fmt(o.tong.tu)}) − Khấu trừ`)
+    ], full: () => fullBtt(d, o) },
+    { id: 's2', sheet: 'BPB-Luong', title: 'Bảng phân bổ tiền lương và BHXH', qs: [
+      q('b622', 'Dòng TK 622 – Tổng cộng', o.bpb[622].tongCong, `Lương = Tổng số − Lương nghỉ của CN trực tiếp = ${fmt(o.bpb[622].luong)}\nCó 338 = 23,5% × Lương thời gian CNTT = ${fmt(o.bpb[622].c338)}`),
+      q('b627', 'Dòng TK 627 – Tổng cộng', o.bpb[627].tongCong, `Lương = ${fmt(o.bpb[627].luong)}; Có 338 = ${fmt(o.bpb[627].c338)}`),
+      q('b641', 'Dòng TK 641 – Tổng cộng', o.bpb[641].tongCong, `Lương = ${fmt(o.bpb[641].luong)} (có cả lương theo doanh thu); Có 338 = ${fmt(o.bpb[641].c338)}`),
+      q('b642', 'Dòng TK 642 – Tổng cộng', o.bpb[642].tongCong, `Lương = ${fmt(o.bpb[642].luong)}; Có 338 = ${fmt(o.bpb[642].c338)}`),
+      q('b334', 'Dòng TK 334 – Cộng có TK 338', o.bpb[334].c338, 'Chuyển 3 cột BHXH, BHYT, BHTN (8%, 1,5%, 1%) đã khấu trừ ở Bảng thanh toán lương sang'),
+      q('bC334', 'Tổng cộng – cột Cộng có TK 334', o.bpbTong.c334, `= Lương 4 bộ phận + BHXH (dòng 3383 = tổng lương nghỉ ${fmt(o.tong.L)}) + Thưởng (dòng 3531 = ${fmt(d.quyKT)})`),
+      q('bC338', 'Tổng cộng – cột Cộng có TK 338', o.bpbTong.c338, '= KPCĐ 2% + BHXH 17,5% + BHYT 3% + BHTN 1% (tính trên lương thời gian) + dòng 334'),
+      q('bTong', 'Tổng cộng toàn bảng', o.bpbTong.tongCong, '= Cộng có 334 + Cộng có 338')
+    ], full: () => fullBpb(d, o) },
+    { id: 's3', sheet: 'Ct-VL', title: 'Sổ chi tiết vật liệu, Bảng tổng hợp và phân bổ NVL', qs: [
+      ...[v1, v2, v3].flatMap((v, i) => [
+        q('vl' + i + 'bq', `Đơn giá bình quân – ${v.ten}`, v.bq, `=(Giá trị tồn đầu + Giá trị nhập)/(SL tồn đầu + SL nhập)\n=(${fmt(v.tonTT)}+${fmt(v.nhapTT)})/(${fmt(v.tonSL)}+${fmt(v.nhapSL)})` + (v.nhap.some(n => n.cp) ? `\nGiá trị nhập đã gồm chi phí vận chuyển ${fmt(v.nhap[0].cp)}` : '')),
+        q('vl' + i + 'x', `Giá trị xuất trong kỳ – ${v.ten}`, v.xuatTT, `= SL xuất ${fmt(v.xuatSL)} × Đơn giá bình quân`),
+        q('vl' + i + 'c', `Giá trị tồn cuối kỳ – ${v.ten}`, v.cuoiTT, `= Tồn đầu + Nhập − Xuất; SL tồn cuối = ${fmt(v.cuoiSL)}`)
+      ]),
+      q('pbnvl', 'Bảng phân bổ NVL – Tổng cộng ghi Nợ TK 621', o.c621.tong, 'Chỉ cộng các cột Thành tiền. Đừng SUM cả cột số lượng (kg) vào tổng.')
+    ], full: () => fullVL(d, o) },
+    { id: 's4', sheet: 'Pbo-kh', title: 'Bảng phân bổ khấu hao', qs: [
+      ...o.kh.tang.map((a, i) => q('kht' + i, `KH tăng – ${a.ten}`, a.kh, `= Nguyên giá / Số năm / 12 / ${d.ngayThang} × Số ngày sử dụng\n=${fmt(a.ng)}/${a.nam}/12/${d.ngayThang}*(${d.ngayThang}-${a.ngay}+1)`)),
+      ...o.kh.giam.map((a, i) => q('khg' + i, `KH giảm – ${a.ten}`, a.kh, `= Nguyên giá / Số năm / 12 / ${d.ngayThang} × Số ngày không sử dụng\n=${fmt(a.ng)}/${a.nam}/12/${d.ngayThang}*(${d.ngayThang}-${a.ngay}+1)`)),
+      ...[627, 641, 642].map(bp => q('kh' + bp, `Số KH phải trích tháng này – TK ${bp}`, o.kh.bp[bp].phaiTrich, `= KH tháng trước + KH tăng − KH giảm\n=${fmt(o.kh.bp[bp].truoc)} + ${fmt(o.kh.bp[bp].tang)} − ${fmt(o.kh.bp[bp].giam)}`))
+    ], full: () => fullKH(d, o) },
+    { id: 's5', sheet: 'Ct-621 · 622 · 627', title: 'Sổ chi tiết chi phí sản xuất', qs: [
+      q('c621', 'Sổ 621 – Cộng số phát sinh', o.c621.tong, `= Giá trị xuất VL chính (${fmt(o.c621[1521])}) + VL phụ (${fmt(o.c621[1522])})`),
+      q('c622', 'Sổ 622 – Cộng số phát sinh', o.c622.tong, `= Dòng 622 bảng phân bổ lương: Cộng có 334 + Cộng có 338`),
+      q('c627', 'Sổ 627 – Cộng số phát sinh', o.c627.tong, `= Lương ${fmt(o.c627.l334)} + Trích 338 ${fmt(o.c627.l338)} + Khấu hao ${fmt(o.c627.k214)} + Tiền điện ${fmt(o.c627.d112)}`)
+    ] },
+    { id: 's6', sheet: 'Ct-154 · B-TGTSP', title: 'Giá thành sản phẩm ' + d.spTen, qs: [
+      q('dd1521', 'Dở dang cuối kỳ – VL chính (1521)', o.gt[1521].cuoi, `VL chính tính theo SP thực, KHÔNG nhân % hoàn thành\n=(${fmt(o.gt[1521].dau)}+${fmt(o.gt[1521].ps)})/(${fmt(HT)}+${fmt(DD)})*${fmt(DD)}`),
+      q('dd622', 'Dở dang cuối kỳ – Nhân công (622)', o.gt[622].cuoi, `Quy đổi dở dang: ${fmt(DD)} × ${m}% = ${fmt(DD * m / 100)} SP\n=(${fmt(o.gt[622].dau)}+${fmt(o.gt[622].ps)})/(${fmt(HT)}+${fmt(DD)}*${m}%)*${fmt(DD)}*${m}%`),
+      q('ddTong', 'Tổng chi phí dở dang cuối kỳ', o.gt.tong.cuoi, 'VL phụ, nhân công, SX chung đều tính theo SP quy đổi'),
+      q('gtTong', 'Tổng giá thành sản phẩm hoàn thành', o.gt.tong.tong, '= Dở dang đầu + Phát sinh − Dở dang cuối'),
+      q('gtDv', 'Giá thành đơn vị', o.gt.tong.dv, `= Tổng giá thành / ${fmt(HT)} SP hoàn thành`),
+      q('c154', 'Sổ 154 – Số dư cuối kỳ', o.c154.cuoi, '= Dư đầu + Cộng phát sinh (621+622+627) − Tổng giá thành (ghi Có 154, Nợ 155)')
+    ], full: () => fullGT(d, o) },
+    { id: 's7', sheet: 'Ct-155 · 632 · 511', title: 'Thành phẩm, giá vốn, doanh thu', qs: [
+      q('tpNhap', 'Sổ 155 – Giá trị nhập kho trong kỳ', o.tp.nhapTT, `= ${fmt(o.tp.nhapSL)} SP × Giá thành đơn vị ${fmt(o.gt.tong.dv)}`),
+      q('tpBq', 'Đơn giá bình quân xuất thành phẩm', o.tp.bq, `=(${fmt(d.tp.tonTT)}+${fmt(o.tp.nhapTT)})/(${fmt(d.tp.tonSL)}+${fmt(o.tp.nhapSL)})`),
+      q('c632', 'Sổ 632 – Tổng giá vốn', o.c632, `= ${fmt(o.tp.xuatSL)} SP × đơn giá bình quân (khóa ô đơn giá bằng $)`),
+      q('tpCuoi', 'Sổ 155 – Giá trị tồn cuối kỳ', o.tp.cuoiTT, `SL tồn cuối = ${fmt(o.tp.cuoiSL)}`),
+      q('lg', 'Sổ 511 – Lãi gộp tiêu thụ', o.kq.lng, `= Doanh thu thuần ${fmt(o.c511)} − Giá vốn`)
+    ] },
+    { id: 's8', sheet: 'Ct-641 · 642 · 911', title: 'Chi phí bán hàng, quản lý và kết quả kinh doanh', qs: [
+      q('c641', 'Sổ 641 – Cộng phát sinh', o.c641.tong, `= Lương ${fmt(o.c641.l334)} + 338 ${fmt(o.c641.l338)} + KH ${fmt(o.c641.k214)} + Điện ${fmt(o.c641.d112)}`),
+      q('c642', 'Sổ 642 – Cộng phát sinh', o.c642.tong, `= Lương ${fmt(o.c642.l334)} + 338 ${fmt(o.c642.l338)} + KH ${fmt(o.c642.k214)} + Điện ${fmt(o.c642.d112)}`),
+      q('lntt', 'Lợi nhuận trước thuế', o.kq.lntt, `= (511 + 711) − (632 + 635 + 641 + 642 + 811)\n=(${fmt(o.kq.dt)}+${fmt(o.kq.tnk)})−(${fmt(o.kq.gv)}+${fmt(o.kq.cptc)}+${fmt(o.kq.cpbh)}+${fmt(o.kq.cpql)}+${fmt(o.kq.cpk)})`),
+      q('thue', 'Chi phí thuế TNDN (821)', o.kq.thue, `= ${d.thueSuat * 100}% × Lợi nhuận trước thuế`),
+      q('lnst', 'Lợi nhuận sau thuế (kết chuyển 421)', o.kq.lnst, 'Kiểm tra: Cộng PS Nợ 911 phải bằng Cộng PS Có 911')
+    ], full: () => fullKQ(d, o) }
+  ];
+}
+
+function fullBtt(d, o) {
+  const rows = [];
+  const ten = { sxql: 'Quản lý PX (627)', sx: 'CN trực tiếp (622)', ql: 'QLDN (642)', bh: 'Bán hàng (641)' };
+  for (const k of ['sxql', 'sx', 'ql', 'bh']) {
+    const g = o.nhom[k];
+    g.rows.forEach(p => rows.push({ c: [esc(p.ten), fmt(p.H), fmt(p.J), p.nghiCong, fmt(p.L), fmt(p.M), fmt(p.tu), fmt(p.R), fmt(p.S)] }));
+    rows.push({ cls: 'sum', c: ['Tổng ' + ten[k], fmt(g.sum.H), fmt(g.sum.J), '', fmt(g.sum.L), fmt(g.sum.M), fmt(g.sum.tu), fmt(g.sum.R), fmt(g.sum.S)] });
+  }
+  rows.push({ cls: 'grp', c: ['Tổng quỹ lương', fmt(o.tong.H), fmt(o.tong.J), '', fmt(o.tong.L), fmt(o.tong.M), fmt(o.tong.tu), fmt(o.tong.R), fmt(o.tong.S)] });
+  return table(['Họ tên', N('Lương SP'), N('Lương TG'), N('Công nghỉ'), N('Lương nghỉ'), N('Tổng số'), N('Tạm ứng'), N('Khấu trừ'), N('Kỳ II')], rows);
+}
+function fullBpb(d, o) {
+  const ten = { 642: 'TK 642 – Chi phí QLDN', 627: 'TK 627 – Chi phí SX chung', 334: 'TK 334 – Phải trả người LĐ', 641: 'TK 641 – Chi phí bán hàng', 3531: 'TK 353 (3531) – Quỹ khen thưởng', 3383: 'TK 338 (3383) – BHXH', 622: 'TK 622 – Chi phí NC trực tiếp' };
+  const rows = [642, 627, 334, 641, 3531, 3383, 622].map(k => { const r = o.bpb[k]; return { c: [ten[k], fmt(r.luong), fmt(r.bhxh), fmt(r.thuong), fmt(r.c334), fmt(r.kpcd), fmt(r.xh), fmt(r.yt), fmt(r.tn), fmt(r.c338), fmt(r.tongCong)] }; });
+  const t = o.bpbTong;
+  rows.push({ cls: 'sum', c: ['Tổng cộng', fmt(t.luong), fmt(t.bhxh), fmt(t.thuong), fmt(t.c334), fmt(t.kpcd), fmt(t.xh), fmt(t.yt), fmt(t.tn), fmt(t.c338), fmt(t.tongCong)] });
+  return `<p class="muted" style="font-size:13px">Thứ tự dòng giữ đúng như file đề (642, 627, 334, 641, 353, 338, 622). Đừng chép công thức theo thứ tự dòng của bài Nhất Linh.</p>` +
+    table(['Đối tượng', N('Lương'), N('BHXH'), N('Thưởng'), N('Cộng có 334'), N('KPCĐ'), N('BHXH'), N('BHYT'), N('BHTN'), N('Cộng có 338'), N('Tổng cộng')], rows);
+}
+function fullVL(d, o) {
+  return o.vl.map(v => `<h3>${esc(v.ten)} – TK ${v.ma}</h3>` + table(['Diễn giải', N('Đơn giá'), N('SL nhập'), N('TT nhập'), N('SL xuất'), N('TT xuất'), N('SL tồn'), N('TT tồn')], [
+    { c: ['Tồn đầu kỳ', fmt(v.tonTT / v.tonSL), '', '', '', '', fmt(v.tonSL), fmt(v.tonTT)] },
+    ...v.nhap.map(n => ({ c: [`Nhập ngày ${n.ngay}/${d.thang}`, fmt(n.tien / n.sl), fmt(n.sl), fmt(n.tien), '', '', '', ''] })),
+    ...v.xuat.map(x => ({ c: [`Xuất ngày ${x.ngay}/${d.thang} (621)`, '', '', '', fmt(x.sl), fmt(x.tien), '', ''] })),
+    { cls: 'sum', c: ['Cộng trong tháng', fmt(v.bq), fmt(v.nhapSL), fmt(v.nhapTT), fmt(v.xuatSL), fmt(v.xuatTT), fmt(v.cuoiSL), fmt(v.cuoiTT)] }
+  ])).join('');
+}
+function fullKH(d, o) {
+  const rows = [{ c: ['I. Số KH trích tháng trước', '', '', fmt(o.kh.bp[627].truoc), fmt(o.kh.bp[641].truoc), fmt(o.kh.bp[642].truoc)] }];
+  o.kh.tang.forEach(a => rows.push({ c: ['II. Tăng – ' + esc(a.ten), a.nam, fmt(a.ng), a.bp === 627 ? fmt(a.kh) : '', a.bp === 641 ? fmt(a.kh) : '', a.bp === 642 ? fmt(a.kh) : ''] }));
+  o.kh.giam.forEach(a => rows.push({ c: ['III. Giảm – ' + esc(a.ten), a.nam, fmt(a.ng), a.bp === 627 ? fmt(a.kh) : '', a.bp === 641 ? fmt(a.kh) : '', a.bp === 642 ? fmt(a.kh) : ''] }));
+  rows.push({ cls: 'sum', c: ['IV. Số KH phải trích (I + II − III)', '', '', fmt(o.kh.bp[627].phaiTrich), fmt(o.kh.bp[641].phaiTrich), fmt(o.kh.bp[642].phaiTrich)] });
+  return table(['Chỉ tiêu', N('Số năm'), N('Nguyên giá'), N('TK 627'), N('TK 641'), N('TK 642')], rows);
+}
+function fullGT(d, o) {
+  const ten = { 1521: '– VL chính (1521)', 1522: '– VL phụ (1522)', 622: 'Nhân công trực tiếp (622)', 627: 'Chi phí SX chung (627)' };
+  const rows = [1521, 1522, 622, 627].map(k => { const r = o.gt[k]; return { c: [ten[k], fmt(r.dau), fmt(r.ps), fmt(r.cuoi), fmt(r.tong), fmt(r.dv)] }; });
+  const t = o.gt.tong;
+  rows.push({ cls: 'sum', c: ['Tổng', fmt(t.dau), fmt(t.ps), fmt(t.cuoi), fmt(t.tong), fmt(t.dv)] });
+  return table(['Khoản mục', N('DD đầu kỳ'), N('PS trong kỳ'), N('DD cuối kỳ'), N('Tổng giá thành'), N('Giá thành ĐV')], rows);
+}
+function fullKQ(d, o) {
+  const k = o.kq;
+  const rows = [['1. Doanh thu bán hàng', k.dt], ['2. Giảm trừ doanh thu', 0], ['3. Doanh thu thuần', k.dt], ['4. Giá vốn hàng bán', k.gv], ['5. Lợi nhuận gộp', k.lng], ['7. Chi phí tài chính', k.cptc], ['8. Chi phí bán hàng', k.cpbh], ['9. Chi phí quản lý DN', k.cpql], ['10. LN thuần từ HĐKD', k.lnt], ['11. Thu nhập khác', k.tnk], ['12. Chi phí khác', k.cpk], ['13. Kết quả khác', k.kqk], ['14. LN trước thuế', k.lntt], ['15. Chi phí thuế TNDN', k.thue], ['16. LN sau thuế', k.lnst]]
+    .map(([a, b]) => ({ c: [a, fmt(b)] }));
+  return table(['Chỉ tiêu (BCKQKD)', N('Số tiền')], rows, 'kv') + `<p class="muted" style="font-size:13px">Sổ 911: Cộng PS Nợ = <span class="num">${fmt(k.psNo)}</span>, Cộng PS Có = <span class="num">${fmt(k.psCo)}</span>.</p>`;
+}
+
+function renderSections() {
+  const saved = store.get('ans:' + DE.id, {});
+  ANS = saved;
+  $('#sheets').innerHTML = SECTIONS.map(s => `
+    <article class="sheet" id="${s.id}">
+      <span class="tab">${s.sheet}</span>
+      <div class="hd"><h3>${s.title}</h3><div class="acts"><span class="chip" data-chip="${s.id}">0/${s.qs.length}</span>
+        <button class="btn" data-cham="${s.id}">Chấm</button><button class="btn ghost" data-hien="${s.id}">Xem đáp án</button></div></div>
+      ${s.qs.map(q => `<div class="q" id="q-${q.id}" data-st="empty">
+        <label for="i-${q.id}">${esc(q.label)}</label>
+        <input class="ans" id="i-${q.id}" inputmode="decimal" autocomplete="off" value="${esc(saved[q.id] || '')}" placeholder="…">
+        <span class="mark" aria-live="polite"></span>
+        <div class="fb" hidden></div>
+        <div class="sol" hidden>Đáp án: <b>${fmt(q.v)}</b><span class="fx">${esc(q.f || '')}</span></div></div>`).join('')}
+      ${s.full ? `<details class="full"><summary>Bảng lời giải đầy đủ</summary><div class="inner">${s.full()}</div></details>` : ''}
+    </article>`).join('');
+  document.querySelectorAll('#sheets input.ans').forEach(inp => {
+    inp.addEventListener('input', () => { ANS[inp.id.slice(2)] = inp.value; store.set('ans:' + DE.id, ANS); const qd = inp.closest('.q'); if (qd.dataset.st !== 'empty') chamQ(qd, true); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') chamQ(inp.closest('.q')); });
+  });
+  document.querySelectorAll('[data-cham]').forEach(b => b.onclick = () => { chamSection(b.dataset.cham); });
+  document.querySelectorAll('[data-hien]').forEach(b => b.onclick = () => {
+    const el = document.getElementById(b.dataset.hien); const on = b.textContent === 'Xem đáp án';
+    el.querySelectorAll('.sol').forEach(s => s.hidden = !on); b.textContent = on ? 'Ẩn đáp án' : 'Xem đáp án';
+  });
+  capNhatDiem();
+}
+function findQ(id) { for (const s of SECTIONS) for (const q of s.qs) if (q.id === id) return q; }
+function chamQ(qd, quiet) {
+  const id = qd.id.slice(2), q = findQ(id), val = qd.querySelector('input').value;
+  const st = cham(val, q.v);
+  qd.dataset.st = st;
+  qd.querySelector('.mark').textContent = MSG[st];
+  const fb = qd.querySelector('.fb');
+  fb.hidden = !(st === 'near' || st === 'sign' || st === 'bad');
+  fb.textContent = FB[st] || '';
+  if (!quiet) capNhatDiem();
+  else capNhatDiem();
+  return st;
+}
+function chamSection(id) {
+  document.querySelectorAll('#' + id + ' .q').forEach(qd => chamQ(qd, true));
+  capNhatDiem();
+}
+function capNhatDiem() {
+  let ok = 0, all = 0;
+  for (const s of SECTIONS) {
+    let so = 0;
+    for (const q of s.qs) { all++; const st = document.getElementById('q-' + q.id)?.dataset.st; if (st === 'ok') { ok++; so++; } }
+    const c = document.querySelector(`[data-chip="${s.id}"]`);
+    if (c) { c.textContent = so + '/' + s.qs.length; c.classList.toggle('full', so === s.qs.length); }
+  }
+  $('#diem').textContent = ok + '/' + all + ' đúng';
+  $('#diemBar').style.width = (all ? ok / all * 100 : 0) + '%';
+}
+function napDe(kind) {
+  DE = layDe(kind); KQ = tinhDe(DE); SECTIONS = buildSections(DE, KQ);
+  store.set('de', kind);
+  document.querySelectorAll('#chonDe button').forEach(b => b.setAttribute('aria-pressed', b.dataset.de === kind));
+  renderDe(DE); renderSections();
+  $('#oMa').value = DE.ma;
+  $('#goiY').textContent = `Mã đề ${DE.ma}. Bấm “Tải đề này (Excel)” để làm trên máy theo đúng mẫu của cô; làm xong mở lại web, gõ mã đề ${DE.ma} rồi điền kết quả vào các ô bên phải để chấm.`;
+  // chấm lại những ô đã có số
+  document.querySelectorAll('#sheets .q').forEach(qd => { if (qd.querySelector('input').value.trim()) chamQ(qd, true); });
+  capNhatDiem();
+}
+document.querySelectorAll('#chonDe button').forEach(b => b.onclick = () => napDe(b.dataset.de));
+$('#formMa').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('#oMa').value.trim().toUpperCase();
+  if (v === 'QA') return napDe('quocan');
+  if (v === 'HA') return napDe('hoanganh');
+  const n = parseInt(v, 10);
+  if (!(n >= 1 && n <= 999999)) { toast('Mã đề là QA, HA hoặc một số từ 1 đến 999999.'); return; }
+  store.set('seed', n); napDe('rand'); toast('Đã mở đề mã ' + n);
+});
+$('#taiDe').onclick = async () => {
+  const b = $('#taiDe'); b.disabled = true; const cu = b.textContent; b.textContent = 'Đang tạo file…';
+  try {
+    if (!window.ExcelJS) throw new Error('Chưa tải được thư viện Excel, kiểm tra mạng rồi thử lại.');
+    const res = await fetch('de-mau.xlsx'); if (!res.ok) throw new Error('Không tải được file đề mẫu.');
+    const wb = new ExcelJS.Workbook(); await wb.xlsx.load(await res.arrayBuffer());
+    dienFileMau(wb, DE);
+    const buf = await wb.xlsx.writeBuffer();
+    const url = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'De on tap - ' + DE.cty + ' - ma ' + DE.ma + '.xlsx';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
+    toast('Đã tải đề mã ' + DE.ma);
+  } catch (err) { toast(err.message); }
+  b.disabled = false; b.textContent = cu;
+};
+$('#deMoi').onclick = () => { store.set('seed', Math.floor(Math.random() * 9000) + 1000); napDe('rand'); toast('Đã tạo đề mới: ' + DE.ten); };
+$('#chamHet').onclick = () => { SECTIONS.forEach(s => chamSection(s.id)); toast('Đã chấm ' + $('#diem').textContent); };
+$('#copyNV').onclick = async e => {
+  e.preventDefault(); e.stopPropagation();
+  const lines = [['Họ tên', 'Hệ số lương', 'Hệ số phụ cấp', 'Số SP/Doanh thu', 'Đơn giá/Tỷ lệ', 'Số công', 'Tạm ứng'].join('\t')];
+  for (const k of ['sxql', 'sx', 'ql', 'bh']) for (const p of DE.nv[k]) lines.push([p.ten, p.hs, p.pc || '', p.tongDT ? '' : (p.sp || ''), p.dg || '', p.cong, p.tu].join('\t'));
+  const txt = lines.join('\n');
+  try { await navigator.clipboard.writeText(txt); toast('Đã sao chép. Dán vào Excel bằng Ctrl+V.'); }
+  catch (err) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('Đã sao chép.'); } catch (e2) { toast('Trình duyệt chặn sao chép.'); } ta.remove(); }
+};
+
+/* ===== Hàm tài chính ===== */
+const FIN = [
+  { src: 'Tài liệu PDF · Bài tập 1', de: 'Nhà đầu tư muốn có 200 triệu sau 5 năm, tỷ suất lợi nhuận 15%/năm. Hôm nay phải bỏ vào bao nhiêu?', qs: [
+    { id: 'b1', l: 'Số tiền bỏ ra hôm nay (triệu)', v: () => F.PV(.15, 5, 0, 200), f: '=PV(15%,5,0,200)' }], kl: 'Khoảng 99,44 triệu. Excel trả số âm vì đây là tiền bỏ ra.' },
+  { src: 'Tài liệu PDF · Bài tập 2', de: 'Tài sản giá hiện tại 100 triệu, lãi suất ngân hàng 8%/năm. (1) Trả sau 1 năm 109tr; (2) Cuối mỗi năm trả 42tr trong 3 năm; (3) Sau 4 năm trả 139,2tr; (4) Cuối mỗi năm trả 28,2tr trong 4 năm; (5) Trả ngay 100tr. Chọn phương án nào?', qs: [
+    { id: 'b2a', l: 'Giá trị hiện tại PA 1', v: () => -F.PV(.08, 1, 0, 109), f: '=PV(8%,1,0,-109)' },
+    { id: 'b2b', l: 'Giá trị hiện tại PA 2', v: () => -F.PV(.08, 3, 42), f: '=PV(8%,3,-42)' },
+    { id: 'b2c', l: 'Giá trị hiện tại PA 3', v: () => -F.PV(.08, 4, 0, 139.2), f: '=PV(8%,4,0,-139.2)' },
+    { id: 'b2d', l: 'Giá trị hiện tại PA 4', v: () => -F.PV(.08, 4, 28.2), f: '=PV(8%,4,-28.2)' },
+    { id: 'b2e', l: 'Nên chọn phương án số', v: () => 4, f: 'Chọn phương án có giá trị hiện tại nhỏ nhất' }], kl: 'Phương án 4 rẻ nhất khi quy về hiện tại (≈ 93,40 triệu < 100 triệu).' },
+  { src: 'Tài liệu PDF · Bài tập 3', de: 'Gửi 100$ vào tài khoản lãi 0,5%/tháng, đầu mỗi tháng tiếp theo gửi thêm 100$ trong 12 tháng. Sau 12 tháng có bao nhiêu?', qs: [
+    { id: 'b3', l: 'Số tiền sau 12 tháng ($)', v: () => F.FV(.005, 12, -100, -100, 1), f: '=FV(0.5%,12,-100,-100,1)' }], kl: 'Hiểu là có 100$ gửi ban đầu (Pv) cộng 12 lần gửi đầu tháng (Pmt, Type = 1). Nếu cô chỉ tính 12 lần gửi thì =FV(0.5%,12,-100,0,1) ≈ 1.239,72.' },
+  { src: 'Tài liệu PDF · Bài tập 4', de: 'Anh Tiệp có 1.000$ gửi tiết kiệm lãi 5,5%/năm. Đầu mỗi tháng gửi thêm 100$ trong 5 năm. Sau 5 năm có bao nhiêu?', qs: [
+    { id: 'b4', l: 'Số tiền sau 5 năm ($)', v: () => F.FV(.055 / 12, 60, -100, -1000, 1), f: '=FV(5.5%/12,5*12,-100,-1000,1)' }], kl: 'Lãi năm phải chia 12 và số kỳ nhân 12 vì gửi theo tháng.' },
+  { src: 'Tài liệu PDF · Bài tập 5', de: 'Công ty Thanh Mai có 180.000$, đầu tư vào cuối chu kỳ đầu. Mở rộng SX thu 9800, 268000, 52400, 65700, 85100 (chiết khấu 6,4%); Nuôi tôm thu 11400, 25800, 45700, 62300, 85300 (6,9%); Khách sạn thu 10800, 22400, 46900, 63800, 84300 (6,5%).', qs: [
+    { id: 'b5a', l: 'NPV dự án mở rộng sản xuất', v: () => F.NPV(.064, -180000, 9800, 268000, 52400, 65700, 85100), f: '=NPV(6.4%,-180000,9800,268000,52400,65700,85100)' },
+    { id: 'b5b', l: 'NPV dự án nuôi tôm', v: () => F.NPV(.069, -180000, 11400, 25800, 45700, 62300, 85300), f: '=NPV(6.9%,-180000,11400,25800,45700,62300,85300)' },
+    { id: 'b5c', l: 'NPV dự án khách sạn', v: () => F.NPV(.065, -180000, 10800, 22400, 46900, 63800, 84300), f: '=NPV(6.5%,-180000,10800,22400,46900,63800,84300)' }],
+    kl: 'Đầu tư cuối chu kỳ đầu nên −180.000 nằm trong hàm NPV. Nuôi tôm và khách sạn có NPV âm; mở rộng sản xuất có NPV dương nên chọn dự án này. Số 268000 có lẽ in nhầm từ 26800, nhưng sửa lại thì dự án vẫn có lãi:', note: 'NPV với 26800 ≈ ' },
+  { src: 'Tài liệu PDF · Bài tập 6', de: 'Ngày 1/1/2005 gửi 5 triệu VND kỳ hạn 5 năm với lãi suất các năm lần lượt 6,5%; 5,0%; 4,2%; 2,6%; 2,5%. Hết kỳ hạn có bao nhiêu?', qs: [
+    { id: 'b6', l: 'Số tiền cuối kỳ (triệu)', v: () => F.FVSCHEDULE(5, [.065, .05, .042, .026, .025]), f: '=FVSCHEDULE(5,{6.5%,5%,4.2%,2.6%,2.5%})' }], kl: 'Lưu ý: ví dụ mẫu trong tài liệu ghi FVSCHEDULE(5000000,{7%,9%,8%,11%}) = 20.972.407 là sai; kết quả đúng là 6.990.802.' },
+  { src: 'Tài liệu PDF · Bài tập 7', de: 'Năm phương án a–e vốn 15, 7, 8, 10, 12 triệu; lãi các năm 2000–2004: 6,5%; 5%; 4,2%; 3,2%; 2,8%. Tính tiền thu về.', qs: [
+    { id: 'b7a', l: 'Phương án a (15 tr)', v: () => F.FVSCHEDULE(15, [.065, .05, .042, .032, .028]), f: '=FVSCHEDULE(B2,$C$2:$G$2) — khóa vùng lãi suất rồi kéo xuống' },
+    { id: 'b7e', l: 'Phương án e (12 tr)', v: () => F.FVSCHEDULE(12, [.065, .05, .042, .032, .028]), f: '=FVSCHEDULE(12,{6.5%,5%,4.2%,3.2%,2.8%})' }], kl: 'Cả 5 phương án nhân cùng hệ số ≈ 1,2362: b ≈ 8,653; c ≈ 9,889; d ≈ 12,362.' },
+  { src: 'Tài liệu PDF · Bài tập 8', de: 'Anh Bình mua trả góp xe máy 14 triệu trong 3 năm, lãi 6%/năm, trả đầu mỗi tháng. Mỗi tháng trả bao nhiêu?', qs: [
+    { id: 'b8', l: 'Mỗi tháng trả (triệu)', v: () => F.PMT(.06 / 12, 36, 14, 0, 1), f: '=PMT(6%/12,3*12,14,0,1)' }], kl: 'Khoảng 424 nghìn đồng mỗi tháng (Type = 1 vì trả đầu tháng).' },
+  { src: 'Tài liệu PDF · Bài tập 9', de: 'Chị Hoa muốn sau 18 năm tài khoản của con có 60.000$, lãi 6%/năm, nộp cuối mỗi tháng. Mỗi tháng nộp bao nhiêu?', qs: [
+    { id: 'b9', l: 'Mỗi tháng nộp ($)', v: () => F.PMT(.06 / 12, 216, 0, 60000), f: '=PMT(6%/12,18*12,0,60000)' }], kl: '60.000 là giá trị tương lai (Fv), Pv = 0.' },
+  { src: 'Tài liệu PDF · Bài tập 10', de: 'Bác Định mua xe 19 triệu, lãi 6,4%/năm, đầu mỗi tháng trả 700.000đ. Bao nhiêu tháng thì trả hết?', qs: [
+    { id: 'b10', l: 'Số tháng', v: () => F.NPER(.064 / 12, -0.7, 19, 0, 1), f: '=NPER(6.4%/12,-0.7,19,0,1)' }], kl: 'Để cùng đơn vị triệu: 700.000đ = 0,7 triệu. Làm tròn lên thành 30 tháng.' },
+  { src: 'Tài liệu PDF · Bài tập 11', de: 'Công ty may Thăng Long vay 180.000$, dự án thu về 6 năm: 4200, 34500, 38400, 67200, 62300, 61700. Lãi vay 12%/năm. Có nên vay?', qs: [
+    { id: 'b11a', l: 'IRR (%)', pct: true, v: () => F.IRR([-180000, 4200, 34500, 38400, 67200, 62300, 61700]) * 100, f: '=IRR({-180000,4200,34500,38400,67200,62300,61700})' },
+    { id: 'b11b', l: 'NPV tại 12%', v: () => F.NPV(.12, -180000, 4200, 34500, 38400, 67200, 62300, 61700), f: '=NPV(12%,-180000,4200,34500,38400,67200,62300,61700)' }], kl: 'IRR ≈ 10,1% nhỏ hơn lãi vay 12% nên NPV âm → không nên vay. Cách đặt −180000 trong NPV giống ví dụ anh Nam trong tài liệu (ra đúng 6.204,57).' },
+  { src: 'Tài liệu PDF · Bài tập 12', de: 'Xe tải 30.000$, dùng 10 năm, bán được 7.500$. Tính khấu hao từng năm bằng SYD.', qs: [
+    { id: 'b12a', l: 'Năm 1', v: () => F.SYD(30000, 7500, 10, 1), f: '=SYD(30000,7500,10,1)' },
+    { id: 'b12b', l: 'Năm 5', v: () => F.SYD(30000, 7500, 10, 5), f: '=SYD(30000,7500,10,5)' },
+    { id: 'b12c', l: 'Năm 10', v: () => F.SYD(30000, 7500, 10, 10), f: '=SYD(30000,7500,10,10)' }], kl: 'Mỗi năm giảm đều 409,09. Tổng 10 năm = 22.500 = 30.000 − 7.500.' },
+  { src: 'Tài liệu PDF · Bài tập 13', de: 'Cuối tháng 7/2004 mua máy hàn 1.200.000đ, dùng 6 năm, bán được 110.000đ. Tính khấu hao các năm (tỷ lệ cố định).', qs: [
+    { id: 'b13a', l: 'Năm 1 (2004, dùng 5 tháng)', v: () => F.DB(1200000, 110000, 6, 1, 5), f: '=DB(1200000,110000,6,1,5)' },
+    { id: 'b13b', l: 'Năm 2', v: () => F.DB(1200000, 110000, 6, 2, 5), f: '=DB(1200000,110000,6,2,5)' },
+    { id: 'b13c', l: 'Năm 7 (7 tháng cuối)', v: () => F.DB(1200000, 110000, 6, 7, 5), f: '=DB(1200000,110000,6,7,5)' }], kl: 'Mua cuối tháng 7 nên năm đầu dùng 5 tháng (8–12) → Month = 5, và có thêm kỳ thứ 7.' },
+  { src: 'Tài liệu PDF · Bài tập 14', de: 'Xe máy 8.500.000đ, sau 3 năm bán 1.100.000đ. Tính khấu hao ngày thứ 2, tháng thứ 3, năm thứ 2 theo tỷ lệ 120%.', qs: [
+    { id: 'b14a', l: 'Ngày thứ 2', v: () => F.DDB(8500000, 1100000, 3 * 365, 2, 1.2), f: '=DDB(8500000,1100000,3*365,2,1.2)' },
+    { id: 'b14b', l: 'Tháng thứ 3', v: () => F.DDB(8500000, 1100000, 36, 3, 1.2), f: '=DDB(8500000,1100000,3*12,3,1.2)' },
+    { id: 'b14c', l: 'Năm thứ 2', v: () => F.DDB(8500000, 1100000, 3, 2, 1.2), f: '=DDB(8500000,1100000,3,2,1.2)' }], kl: 'Factor = 120% = 1,2. Life và Per phải cùng đơn vị (ngày, tháng, năm).' },
+  { src: 'Tài liệu PDF · Bài tập 15', de: 'Ngày 15/3/2005 mua máy in 2.600$; ngày 28/2/2007 bán được 250$. Tính khấu hao từ 18/6/2005 đến 25/9/2006 (kết toán kép).', qs: [
+    { id: 'b15', l: 'Khấu hao trong khoảng đó ($)', v: () => F.VDB(2600, 250, 715, 95, 559), f: '=VDB(2600,250,DATE(2007,2,28)-DATE(2005,3,15),DATE(2005,6,18)-DATE(2005,3,15),DATE(2006,9,25)-DATE(2005,3,15))\n= VDB(2600,250,715,95,559)' }], kl: 'Tính theo ngày: đời sống 715 ngày, bắt đầu ở ngày thứ 95, kết thúc ở ngày thứ 559 kể từ ngày mua.' },
+  { src: 'Tài liệu PDF · Chứng khoán', de: 'INTRATE: 16/2/2009 → 25/5/2009, đầu tư 1.000.000, thu về 1.014.420, cơ sở 360. RECEIVED: 15/2/2010 → 15/5/2010, đầu tư 1.000.000, chiết khấu 5,75%, cơ sở 365. DISC: 25/1/2009 → 15/6/2009, giá 97,975, hoàn trả 100, cơ sở 360. PRICEMAT: giao dịch 10/11/2010, tới hạn 16/4/2015, phát hành 15/2/2010, lãi 6,1%, cơ sở 360.', qs: [
+    { id: 'ck1', l: 'INTRATE (%)', pct: true, v: () => F.INTRATE('2009-02-16', '2009-05-25', 1e6, 1014420, 2) * 100, f: '=INTRATE(DATE(2009,2,16),DATE(2009,5,25),1000000,1014420,2)' },
+    { id: 'ck2', l: 'RECEIVED', v: () => F.RECEIVED('2010-02-15', '2010-05-15', 1e6, .0575, 3), f: '=RECEIVED(DATE(2010,2,15),DATE(2010,5,15),1000000,5.75%,3)' },
+    { id: 'ck3', l: 'DISC (%)', pct: true, v: () => F.DISC('2009-01-25', '2009-06-15', 97.975, 100, 2) * 100, f: '=DISC(DATE(2009,1,25),DATE(2009,6,15),97.975,100,2)' },
+    { id: 'ck4', l: 'PRICEMAT', v: () => F.PRICEMAT('2010-11-10', '2015-04-16', '2010-02-15', .061, .061, 2), f: '=PRICEMAT(DATE(2010,11,10),DATE(2015,4,16),DATE(2010,2,15),6.1%,6.1%,2)' }], kl: 'Gõ ngày bằng hàm DATE để tránh máy hiểu nhầm ngày/tháng. Đề không cho Yld thì lấy Yld = lãi suất. Cơ sở ngày/360 là basis 2, ngày/365 là basis 3.' },
+  { src: 'File Word · Bài 1', de: 'Mua máy năm 2013 bằng quỹ ĐTPT: giá chưa thuế 700tr, VAT 10%, vận chuyển 2tr, lắp đặt 8tr. Năm 2023 thải hồi giá 320tr. (a) Khấu hao kỳ 10 theo tổng các năm, 1 năm khấu hao 2 lần. (b) Nếu không mua mà gửi ngân hàng 3,2%/quý thì sau 10 năm có bao nhiêu?', qs: [
+    { id: 'w1a', l: 'KH kỳ 10 (triệu)', v: () => F.SYD(710, 320, 20, 10), f: 'Nguyên giá = 700 + 2 + 8 = 710 (VAT được khấu trừ, không tính)\n=SYD(710,320,10*2,10)' },
+    { id: 'w1b', l: 'Tiền nhận sau 10 năm (triệu)', v: () => F.FV(.032, 40, 0, -710), f: '=FV(3.2%,10*4,0,-710)' }], kl: 'Gửi theo quý nên số kỳ = 10 × 4 = 40. Đề có câu “phương tiện vận tải” nhưng ý là máy móc thiết bị này.' },
+  { src: 'File Word · Bài 2', de: 'Xe máy 27.000.000đ, trả góp 5 năm với lãi 6,6%/năm. Mỗi tháng nộp bao nhiêu? Người khác bán với 580.000đ/tháng trong 5 năm, chọn bên nào?', qs: [
+    { id: 'w2', l: 'Mỗi tháng nộp cho công ty (đ)', v: () => F.PMT(.066 / 12, 60, -27000000), f: '=PMT(6.6%/12,5*12,-27000000)' }], kl: 'Khoảng 529.552đ/tháng, rẻ hơn 580.000đ, nên mua của công ty Nhật Cường.' },
+  { src: 'File Word · Bài 3', de: 'Mua dàn máy $25.000, hoặc thuê 6 năm, mỗi năm $6.200, trả đợt 1 ngay khi ký, lãi 8%/năm. Tính NPV phương án thuê; nên thuê hay mua? IRR của phương án mua?', qs: [
+    { id: 'w3a', l: 'Giá trị hiện tại chi phí thuê ($)', v: () => -F.PV(.08, 6, 6200, 0, 1), f: '=PV(8%,6,-6200,0,1)' },
+    { id: 'w3b', l: 'IRR phương án mua (%)', pct: true, v: () => F.IRR([-18800, 6200, 6200, 6200, 6200, 6200]) * 100, f: 'Mua thì khỏi trả tiền thuê 6.200 ở đầu mỗi năm (năm 0–5):\n=IRR({-18800,6200,6200,6200,6200,6200})  (−25000 + 6200 = −18800)' }], kl: 'Chi phí thuê quy về hiện tại ≈ 30.955 > 25.000 → nên mua. Phần IRR là một cách hiểu phổ biến; hỏi lại cô nếu lớp dùng cách khác.' },
+  { src: 'File Word · Bài 4', de: 'Anh An vay 15 triệu, lãi 12%/năm. (a) Trả hết trong 1 năm thì mỗi tháng trả bao nhiêu? (b) Chỉ trả được 500.000đ/tháng thì mất bao lâu?', qs: [
+    { id: 'w4a', l: 'Mỗi tháng trả (đ)', v: () => -F.PMT(.01, 12, 15000000), f: '=PMT(12%/12,12,15000000)' },
+    { id: 'w4b', l: 'Số tháng phải trả', v: () => F.NPER(.01, -500000, 15000000), f: '=NPER(12%/12,-500000,15000000)' }], kl: 'Khoảng 35,8 tháng, tức gần 3 năm (chia 12 nếu đề hỏi theo năm).' },
+  { src: 'File Word · Bài 5', de: 'Chị Hà vay 80 triệu, trả trong 3 năm, lãi 16%/năm. Mỗi tháng trả bao nhiêu? Chị mua chứng khoán ABC phát hành 01/06/N, tới hạn 20/10/N+2, lãi 10%, mệnh giá 1000$, cơ sở 365. Tính lãi dồn (N = 2026).', qs: [
+    { id: 'w5a', l: 'Mỗi tháng trả (đ)', v: () => -F.PMT(.16 / 12, 36, 80000000), f: '=PMT(16%/12,3*12,80000000)' },
+    { id: 'w5b', l: 'Lãi dồn ($)', v: () => F.ACCRINTM('2026-06-01', '2028-10-20', .1, 1000, 3), f: '=ACCRINTM(DATE(2026,6,1),DATE(2028,10,20),10%,1000,3)' }], kl: 'Từ 01/06/2026 đến 20/10/2028 là 872 ngày (năm 2028 nhuận).' }
+];
+function renderFin() {
+  const saved = store.get('fin', {});
+  $('#finCards').innerHTML = FIN.map((b, i) => `<div class="card" id="fc${i}">
+    <span class="src">${b.src}</span><p>${esc(b.de)}</p>
+    ${b.qs.map(q => `<div class="q" id="q-${q.id}" data-st="empty"><label for="i-${q.id}">${esc(q.l)}</label>
+      <input class="ans" id="i-${q.id}" inputmode="decimal" autocomplete="off" value="${esc(saved[q.id] || '')}" placeholder="…"><span class="mark"></span>
+      <div class="fb" hidden></div><div class="sol" hidden>Đáp án: <b>${fmt(q.v())}${q.pct ? '%' : ''}</b><span class="fx">${esc(q.f)}</span></div></div>`).join('')}
+    <div class="sol kl" hidden>${esc(b.kl)}${b.note ? ' ' + esc(b.note) + fmt(F.NPV(.064, -180000, 9800, 26800, 52400, 65700, 85100)) + '.' : ''}</div>
+    <div class="acts"><button class="btn" data-fc="${i}">Kiểm tra</button><button class="btn ghost" data-fs="${i}">Xem lời giải</button></div></div>`).join('');
+  const all = FIN.flatMap(b => b.qs);
+  const chamF = qd => {
+    const q = all.find(x => x.id === qd.id.slice(2));
+    const st = cham(qd.querySelector('input').value, q.v(), q.pct);
+    qd.dataset.st = st; qd.querySelector('.mark').textContent = MSG[st];
+    const fb = qd.querySelector('.fb'); fb.hidden = !FB[st]; fb.textContent = FB[st] || '';
+  };
+  document.querySelectorAll('#finCards input.ans').forEach(inp => {
+    inp.addEventListener('input', () => { saved[inp.id.slice(2)] = inp.value; store.set('fin', saved); if (inp.closest('.q').dataset.st !== 'empty') chamF(inp.closest('.q')); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') chamF(inp.closest('.q')); });
+    if (inp.value.trim()) chamF(inp.closest('.q'));
+  });
+  document.querySelectorAll('[data-fc]').forEach(b => b.onclick = () => document.querySelectorAll(`#fc${b.dataset.fc} .q`).forEach(chamF));
+  document.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => {
+    const on = b.textContent === 'Xem lời giải';
+    document.querySelectorAll(`#fc${b.dataset.fs} .sol`).forEach(s => s.hidden = !on); b.textContent = on ? 'Ẩn lời giải' : 'Xem lời giải';
+  });
+  const ref = [
+    ['PV(Rate, Nper, Pmt, [Fv], [Type])', 'Giá trị hiện tại. Tiền bỏ ra mang dấu âm, tiền thu về dấu dương.'],
+    ['FV(Rate, Nper, Pmt, [Pv], [Type])', 'Giá trị tương lai. Gửi vào thì Pmt, Pv ghi âm. Type 1 = đầu kỳ.'],
+    ['PMT(Rate, Nper, Pv, [Fv], [Type])', 'Số tiền trả mỗi kỳ. Trả theo tháng: Rate/12, Nper×12.'],
+    ['NPER(Rate, Pmt, Pv, [Fv], [Type])', 'Số kỳ cần để trả hết. Pmt và Pv phải ngược dấu.'],
+    ['RATE(Nper, Pmt, Pv, [Fv], [Type])', 'Lãi suất mỗi kỳ.'],
+    ['NPV(Rate, Value1, Value2, …)', 'Đầu tư cuối kỳ đầu: đưa vốn (âm) vào trong hàm. Đầu tư đầu kỳ đầu: =NPV(r, các khoản thu) − vốn.'],
+    ['IRR(Values, [Guess])', 'Lãi suất làm NPV = 0. IRR > lãi vay thì nên đầu tư.'],
+    ['FVSCHEDULE(Principal, Schedule)', 'Giá trị tương lai khi lãi suất thay đổi từng kỳ.'],
+    ['SLN(Cost, Salvage, Life)', 'Khấu hao đường thẳng.'],
+    ['SYD(Cost, Salvage, Life, Per)', 'Khấu hao theo tổng số năm. Life, Per cùng đơn vị.'],
+    ['DB(Cost, Salvage, Life, Period, [Month])', 'Số dư giảm dần cố định. Month = số tháng dùng trong năm đầu.'],
+    ['DDB(Cost, Salvage, Life, Period, [Factor])', 'Số dư giảm dần kép. Factor mặc định 2 (200%).'],
+    ['VDB(Cost, Salvage, Life, Start, End, [Factor], [No_switch])', 'Khấu hao cho khoảng bất kỳ. Kỳ thứ i: Start = i−1, End = i.'],
+    ['ACCRINTM(Issue, Settlement, Rate, Par, [Basis])', 'Lãi dồn của chứng khoán trả lãi khi đáo hạn.'],
+    ['INTRATE(Settlement, Maturity, Investment, Redemption, [Basis])', 'Lãi suất của khoản đầu tư chứng khoán.'],
+    ['RECEIVED(Settlement, Maturity, Investment, Discount, [Basis])', 'Số tiền nhận khi đáo hạn.'],
+    ['DISC(Settlement, Maturity, Pr, Redemption, [Basis])', 'Tỷ suất chiết khấu.'],
+    ['PRICEMAT(Settlement, Maturity, Issue, Rate, Yld, [Basis])', 'Giá trên mệnh giá 100. Basis: 0 = US 30/360, 1 = thực tế, 2 = ngày/360, 3 = ngày/365, 4 = Châu Âu 30/360.']
+  ];
+  $('#fnRef').innerHTML = ref.map(([c, t]) => `<div><code>${esc(c)}</code>${esc(t)}</div>`).join('');
+}
+
+/* ===== Nhất Linh ===== */
+function renderNL() {
+  const r = (a, b) => ({ c: [a, b] });
+  $('#nlBody').innerHTML = `
+    <div><h2>Đáp án bài tổng hợp Công ty Nhất Linh (tháng 8)</h2>
+    <p class="muted" style="max-width:70ch">Các con số dưới đây khớp nhau giữa nhiều bài giải trong lớp. Tháng 8 có 31 ngày; nhân viên chỉ nghỉ Chủ nhật nên ngày công chuẩn là 26; lương tối thiểu 2.700.</p></div>
+    <div class="grid2">
+      <div class="card"><span class="src">Btt-Luong · BPB-Luong</span>${table(['Chỉ tiêu', N('Số tiền')], [
+        r('Tổng lương sản phẩm', '23.500'), r('Tổng lương thời gian', '204.545,8'), r('Tổng lương nghỉ hưởng BHXH', '10.644,2'), r('Tổng quỹ lương', '238.690'), r('Tạm ứng kỳ I', '18.500'),
+        r('Khấu trừ (8% + 1,5% + 1%)', '21.477,3'), r('Kỳ II được lĩnh', '198.712,7'), r('Phân bổ: dòng 622 tổng cộng', '94.747,9'), r('Phân bổ: dòng 627 tổng cộng', '34.794,2'),
+        r('Phân bổ: dòng 641 tổng cộng', '47.614,2'), r('Phân bổ: dòng 642 tổng cộng', '98.957,7'), r('Cộng có 338', '69.545,6'), r('Tổng cộng bảng phân bổ', '320.435,6')].map(x => ({ c: [x.c[0], `<span class="num">${x.c[1]}</span>`] })), 'kv')}</div>
+      <div class="card"><span class="src">Ct-VL · Pbo-kh</span>${table(['Chỉ tiêu', N('Số tiền')], [
+        r('Đơn giá bình quân VL001 (không nhập)', '175,17'), r('Xuất 300 kg VL001', '52.550'), r('Đơn giá bình quân VL002', '165,13'), r('Xuất 100 kg VL002', '16.513,4'),
+        r('Đơn giá bình quân VL003 (nhập 8.100 + vận chuyển 500)', '81,8'), r('Xuất 150 kg VL003', '12.266,5'), r('Tổng ghi Nợ 621', '81.329,9'),
+        r('KH tăng máy xe sợi: 288.000/12/12/31×26', '1.677,4'), r('KH giảm nhà kho BH: 180.000/10/12/31×12', '580,6'), r('KH phải trích: 627 / 641 / 642', '4.677,4 / 419,4 / 3.000')].map(x => ({ c: [x.c[0], `<span class="num">${x.c[1]}</span>`] })), 'kv')}</div>
+      <div class="card"><span class="src">B-TGTSP · Ct-154</span>${table(['Chỉ tiêu', N('Số tiền')], [
+        r('Dở dang đầu kỳ', '7.027,6'), r('Chi phí phát sinh (621 + 622 + 627)', '225.549,5'), r('Dở dang cuối: VL chính (5.000 SP thực)', '12.114,3'),
+        r('Dở dang cuối: 622 (quy đổi 5.000 × 30%)', '4.632,0'), r('Dở dang cuối: 627', '2.405,0'), r('Tổng dở dang cuối kỳ', '19.151,3'), r('Tổng giá thành 30.000 SP', '213.425,8'), r('Giá thành đơn vị', '7,114')].map(x => ({ c: [x.c[0], `<span class="num">${x.c[1]}</span>`] })), 'kv')}</div>
+      <div class="card"><span class="src">BCKQKD</span>${table(['Chỉ tiêu', N('Số tiền')], [
+        r('Doanh thu bán hàng', '411.000'), r('Giảm trừ (chiết khấu 1% Cty Z)', '900'), r('Doanh thu thuần', '410.100'), r('Giá vốn hàng bán', '192.225,0'), r('Lợi nhuận gộp', '217.875,0'),
+        r('Chi phí tài chính', '10.000'), r('Chi phí bán hàng', '50.033,5'), r('Chi phí quản lý DN', '111.157,7'), r('Thu nhập khác / Chi phí khác', '12.000 / 11.000'),
+        r('Lợi nhuận trước thuế', '47.683,8'), r('Thuế TNDN 20%', '9.536,8'), r('Lợi nhuận sau thuế', '38.147,0')].map(x => ({ c: [x.c[0], `<span class="num">${x.c[1]}</span>`] })), 'kv')}</div>
+    </div>
+    <div class="note"><b>Lỗi hay gặp ở bảng giá thành:</b> ô dở dang VL chính dùng =D7/C7 (ra 23,4). Đúng là =(C7+D7)/(30000+5000)*5000 = 12.114,3. Vì vậy giá thành đơn vị ra 7,52 thay vì 7,114. Một lỗi khác là lấy số từ file Excel khác (dạng [2]Ct-154), mở trên máy khác sẽ mất số; hoặc gõ tay số khấu hao 1677 thay vì =F11.</div>`;
+}
+
+/* ===== Bẫy & mẹo ===== */
+function renderMeo() {
+  $('#meoBody').innerHTML = `
+    <div><h2>Những chỗ hay mất điểm</h2><p class="muted">Rút ra từ bài giảng của cô và từ các bài giải trong lớp.</p></div>
+    <ul class="list">
+      <li><b>Ngày công chuẩn đổi theo đề</b>Nhất Linh chỉ nghỉ Chủ nhật nên có 26 công. Quốc An, Hoàng Anh nghỉ cả thứ 7 nên có 22 công. Số công nghỉ = công chuẩn − công đi làm, dùng chung một số ở cả lương thời gian và lương nghỉ.</li>
+      <li><b>Trích theo lương tính trên lương thời gian</b>Doanh nghiệp chịu 23,5% (KPCĐ 2%, BHXH 17,5%, BHYT 3%, BHTN 1%). Trừ lương người lao động 10,5% (8%, 1,5%, 1%). Không tính trên tổng số.</li>
+      <li><b>Cột “Lương” ở bảng phân bổ</b>= Tổng số − Lương nghỉ của bộ phận. Tổng lương nghỉ đưa vào dòng 3383 ở cột BHXH. Quỹ khen thưởng đưa vào dòng 3531 ở cột Thưởng.</li>
+      <li><b>Thứ tự dòng bảng phân bổ bị đảo</b>Đề Quốc An xếp 642, 627, 334, 641, 353, 338, 622. Trỏ công thức theo tên tài khoản, đừng kéo công thức theo thứ tự cũ.</li>
+      <li><b>Chi phí vận chuyển cộng vào giá nhập</b>Giá trị nhập = SL × đơn giá mua + vận chuyển. Đơn giá bình quân = (tồn đầu + nhập) / (SL tồn + SL nhập).</li>
+      <li><b>Bảng phân bổ NVL: cộng đúng cột</b>Cột Tổng chỉ cộng các cột Thành tiền. Dùng =SUM(D10:I10) sẽ cộng lẫn số kg vào tiền (bài mẫu Quốc An bị dư đúng 200.000).</li>
+      <li><b>Khấu hao theo ngày</b>Tăng: nguyên giá / năm / 12 / số ngày tháng × (số ngày tháng − ngày mua + 1). Giảm: cùng công thức với ngày thanh lý. Tháng 6 có 30 ngày, tháng 8 có 31 ngày.</li>
+      <li><b>Dở dang: VL chính khác các khoản còn lại</b>VL chính chia cho (HT + DD) và nhân với DD thực. VL phụ, nhân công, SX chung dùng DD × % hoàn thành.</li>
+      <li><b>Sổ 632 và 511</b>632: thành tiền = SL × đơn giá bình quân, khóa ô đơn giá bằng $ rồi kéo. 511: đơn giá = doanh thu / số lượng.</li>
+      <li><b>Không liên kết sang file khác</b>Công thức dạng ='[2]Ct-154'!H10 sẽ mất số khi mở trên máy phòng thi. Mọi sheet phải nằm trong cùng một file.</li>
+    </ul>
+    <div><h2>Hàm xử lý dữ liệu (đề luyện tập)</h2></div>
+    <div class="grid2">
+      <div class="card"><span class="src">Giới tính từ mã NV</span><code class="i">=IF(MID(B5,3,1)="0","Nam","Nữ")</code><p>Ký tự thứ 3 của mã là 0 thì Nam, 1 thì Nữ.</p></div>
+      <div class="card"><span class="src">Họ tên và tra cứu</span><code class="i">=VLOOKUP(B5,'Danh sách nhân viên'!$B$5:$D$34,2,0)</code><code class="i">=CONCAT(C5," ",D5)</code><p>Tham số cuối là 0 để tìm chính xác. Nhớ khóa vùng bằng $.</p></div>
+      <div class="card"><span class="src">Hệ số lương theo năm làm việc</span><code class="i">=IF(I5&lt;1998,6,IF(I5&lt;=2002,4.5,IF(I5&lt;=2006,3.5,IF(I5&lt;=2011,2.5,1))))</code></div>
+      <div class="card"><span class="src">Thưởng/phạt theo ngày công 22</span><code class="i">=IF(H5&gt;22,(H5-22)*5%*J5,(22-H5)*4%*J5)</code><code class="i">=IF(H5&gt;22,J5+K5,J5-K5)</code></div>
+      <div class="card"><span class="src">Thống kê theo phòng ban</span><code class="i">=SUMIF($G$5:$G$34,B5,$L$5:$L$34)</code><code class="i">=SUMIFS($L$5:$L$34,$G$5:$G$34,$C67,$H$5:$H$34,D$66)</code>
+        <p><b style="color:var(--bad)">Lỗi trong bài mẫu:</b> sau khi sắp xếp Bảng lương, SUMIF vẫn lấy cột phòng ban ở sheet Danh sách, mà hai sheet đã lệch thứ tự dòng, nên ra sai (Đối ngoại 62.431.200, đúng phải là 56.335.500). Cách sửa: thêm cột Phòng ban, Chức vụ vào chính Bảng lương bằng VLOOKUP rồi mới SUMIF.</p></div>
+      <div class="card"><span class="src">Các thao tác không dùng hàm</span><p>Data Validation (Data → Data Validation → List) cho cột Phòng ban. Conditional Formatting → New Rule → Use a formula: <code class="i">=$I5&gt;=2000</code>, chữ đậm trắng nền xanh. Sort theo Tên A→Z, thêm mức Lương giảm dần. Biểu đồ tròn: chọn vùng → Insert → Pie, rồi Move Chart sang sheet mới tên “Biểu đồ”.</p></div>
+    </div>
+    <div><h2>Lỗi in trong tài liệu</h2></div>
+    <ul class="list">
+      <li><b>Ví dụ FVSCHEDULE</b>Tài liệu ghi =FVSCHEDULE(5000000,{7%,9%,8%,11%}) = 20.972.407. Kết quả đúng là 6.990.802.</li>
+      <li><b>Ví dụ NPV anh Thảo</b>Công thức gõ 45999 nhưng đề là 45900. Kết quả 19.861,3 và 21.152,28 là tính với 45900.</li>
+      <li><b>Bài tập 5 (Thanh Mai)</b>Số 268000 nhiều khả năng là 26800. Hỏi lại cô nếu đề thi có bài này.</li>
+    </ul>`;
+}
+
+/* ===== Khởi động ===== */
+renderFin(); renderNL(); renderMeo();
+napDe(store.get('de', 'quocan'));
+const h = (location.hash || '').slice(1);
+moTab(['luyen', 'ham', 'nhatlinh', 'meo'].includes(h) ? h : store.get('tab', 'luyen'));
+</script>
