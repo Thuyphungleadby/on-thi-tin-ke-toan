@@ -188,6 +188,7 @@ code.i{font-family:var(--f-num);font-size:13px;background:var(--paper);padding:1
       <li class="step">
         <div class="step-h"><h3>Chọn đề</h3></div>
         <div class="tiles" role="radiogroup" aria-label="Chọn đề">
+          <label class="tile"><input type="radio" name="de" value="nhatlinh" id="de-nl"><div><b>Công ty Nhất Linh</b><span>Bài tổng hợp trong tài liệu (tháng 8, 31 nghiệp vụ)</span></div></label>
           <label class="tile"><input type="radio" name="de" value="quocan" id="de-qa"><div><b>Công ty Quốc An</b><span>Đề ôn tập của cô</span></div></label>
           <label class="tile"><input type="radio" name="de" value="hoanganh" id="de-ha"><div><b>Công ty Hoàng Anh</b><span>Đề số 1 của cô</span></div></label>
           <label class="tile"><input type="radio" name="de" value="rand" id="de-rd"><div><b>Đề mới ngẫu nhiên</b><span>Cùng dạng, số liệu khác mỗi lần</span></div></label>
@@ -200,7 +201,7 @@ code.i{font-family:var(--f-num);font-size:13px;background:var(--paper);padding:1
       </li>
       <li class="step">
         <div class="step-h"><h3>Tải đề về làm</h3></div>
-        <p>File có sẵn sheet <b>Câu hỏi</b> và các bảng trống: bảng lương, phân bổ, vật liệu, khấu hao, giá thành, 911.</p>
+        <p id="moTaTai">File có sẵn sheet <b>Câu hỏi</b> và các bảng trống: bảng lương, phân bổ, vật liệu, khấu hao, giá thành, 911.</p>
         <p class="small">Làm trong Excel. Xong nhớ bấm <b>Lưu (Ctrl + S)</b> để file giữ kết quả công thức.</p>
         <div class="foot"><button class="btn primary big" id="taiDe" type="button">Tải file đề Excel</button>
           <button class="link" id="xemDeBtn" type="button">Hoặc xem nội dung đề ngay trên web</button></div>
@@ -943,11 +944,11 @@ function oSo(c) {
   return { st: 'khac' };
 }
 const COT = 'ABCDEFGH';
-function timDong(ws, re, tu = 1, den) {
+function timDong(ws, re, tu = 1, den, soCot = 8) {
   den = den || ws.rowCount;
   for (let r = tu; r <= den; r++) {
     const row = ws.getRow(r);
-    for (let c = 1; c <= COT.length; c++) if (re.test(oText(row.getCell(c)).trim())) return r;
+    for (let c = 1; c <= soCot; c++) if (re.test(oText(row.getCell(c)).trim())) return r;
   }
   return null;
 }
@@ -997,7 +998,7 @@ function khoiVL(ws, d) {
     const tu = k ? rows[k - 1] + 1 : 1;
     let text = '';
     for (let x = tu; x < r; x++) { const row = ws.getRow(x); for (let c = 1; c <= 13; c++) text += ' ' + oText(row.getCell(c)); }
-    const hit = d.vl.map((v, i) => [i, new RegExp('(^|[^\\p{L}])' + escRe(v.ten) + '($|[^\\p{L}])', 'iu').test(text)]).filter(x => x[1]);
+    const hit = d.vl.map((v, i) => [i, v.khop ? new RegExp(v.khop, 'i').test(text) : new RegExp('(^|[^\\p{L}])' + escRe(v.ten) + '($|[^\\p{L}])', 'iu').test(text)]).filter(x => x[1]);
     let i = hit.length === 1 ? hit[0][0] : k;
     if (gan[i] == null && i < d.vl.length) gan[i] = r;
   });
@@ -1006,7 +1007,7 @@ function khoiVL(ws, d) {
 
 function chamFile(wb, d, sections) {
   const tol = v => Math.max(0.006, Math.abs(v) * 1e-5);
-  const vt = viTri(d);
+  const vt = d.nv ? viTri(d) : {};
   const kq = [];
   const vlRows = wb.getWorksheet('Ct-VL') ? khoiVL(wb.getWorksheet('Ct-VL'), d) : {};
   const ketQua = (q, sheet, addr) => {
@@ -1024,10 +1025,27 @@ function chamFile(wb, d, sections) {
     item.st = lech <= tol(q.v) ? 'dung' : lech <= Math.abs(q.v) * 0.01 ? 'gan' : 'sai';
     return item;
   };
+  // Bảng lương: nếu chèn thêm cột (vd phụ cấp) trước cột “Tổng số” thì các cột từ M trở đi bị lệch
+  const soCot = s => s.split('').reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0);
+  const chuCot = n => { let s = ''; while (n) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = (n - m - 1) / 26; } return s; };
+  let lechBtt = 0;
+  const bt = wb.getWorksheet('Btt-Luong');
+  if (bt) for (let r = 1; r <= 8 && !lechBtt; r++) { const row = bt.getRow(r); for (let c = 10; c <= 20; c++) if (/^Tổng số$/i.test(oText(row.getCell(c)).trim())) { lechBtt = c - 13; break; } }
+  const chinhCot = (sheet, addr) => {
+    if (sheet !== 'Btt-Luong' || !lechBtt || !addr) return addr;
+    const m = addr.match(/^([A-Z]+)(\d+)$/); if (!m || soCot(m[1]) < 13) return addr;
+    return chuCot(soCot(m[1]) + lechBtt) + m[2];
+  };
+  const ketQua0 = ketQua;
+  const ketQuaCot = (q, sheet, addr) => ketQua0(q, sheet, chinhCot(sheet, addr));
   for (const s of sections) for (const q of s.qs) {
     let sheet, addr;
     const mv = q.id.match(/^vl(\d)(bq|x|c)$/);
-    if (mv) {
+    if (q.tim) {
+      sheet = q.tim.sheet;
+      if (q.tim.vl != null) { const r = vlRows[q.tim.vl]; addr = r ? q.tim.col + r : null; }
+      else { const ws = wb.getWorksheet(sheet); const r = ws ? timDong(ws, q.tim.re, 1, null, q.tim.cols || 8) : null; addr = r ? q.tim.col + r : null; }
+    } else if (mv) {
       sheet = 'Ct-VL'; const r = vlRows[+mv[1]];
       addr = r ? ({ bq: 'F', x: 'J', c: 'L' }[mv[2]] + r) : null;
     } else if (q.id === 'lntt') {
@@ -1047,7 +1065,7 @@ function chamFile(wb, d, sections) {
       sheet = vt[q.id][0]; const ws = wb.getWorksheet(sheet);
       addr = ws ? vt[q.id][1](ws) : null;
     } else { sheet = '?'; addr = null; }
-    kq.push(ketQua(q, sheet, addr));
+    kq.push(ketQuaCot(q, sheet, addr));
   }
   return kq;
 }
@@ -1055,7 +1073,11 @@ function chamFile(wb, d, sections) {
 // Nhận ra mã đề trong file
 function docMaDe(wb) {
   const q = wb.getWorksheet('Câu hỏi');
-  if (!q) return null;
+  if (!q) {
+    const b = wb.getWorksheet('Btt-Luong');
+    if (b && /THÁNG 8/i.test(oText(b.getCell('B2')) + oText(b.getCell('D1')))) return 'NL';
+    return null;
+  }
   const a1 = oText(q.getCell('A1'));
   const m = a1.match(/Mã đề:\s*([A-Za-z0-9]+)/);
   if (m) return m[1].toUpperCase();
@@ -1095,6 +1117,108 @@ function toMauFile(wb, kq, d) {
 }
 if (typeof module !== 'undefined') module.exports = { chamFile, docMaDe, toMauFile, viTri };
 
+/* Danh sách ô chấm đề Nhất Linh. Đáp án (v) lấy từ bài giải chuẩn, điền bởi build-nl.js */
+const NL_SPEC = [
+  { sheet: 'Btt-Luong', title: 'Bảng thanh toán lương', qs: [
+    ['nlX_J', 'Lương thời gian – Nguyễn Thị X', /^Nguyễn Thị X$/, 'J', '=(4,5+3,5)*2700/26*23'],
+    ['nlX_L', 'Lương nghỉ hưởng BHXH – Nguyễn Thị X', /^Nguyễn Thị X$/, 'L', 'Số công nghỉ = 26 − 23 = 3 (NV26)'],
+    ['nlX_S', 'Kỳ II được lĩnh – Nguyễn Thị X', /^Nguyễn Thị X$/, 'S', '= Tổng số − Tạm ứng − 10,5% × Lương thời gian'],
+    ['nlD_M', 'Tổng số – Nguyễn Đình D', /^Nguyễn Đình D$/, 'M', '= 2.500 × 0,5 + Lương TG + Lương nghỉ (6 công)'],
+    ['nlB_H', 'Lương theo doanh thu – Trần Thị B', /^Trần Thị B$/, 'H', '= 600.000 × 0,1%'],
+    ['nlTH', 'Tổng quỹ lương – Lương sản phẩm', /Tổng quỹ lương/i, 'H', 'Cộng 4 dòng Tổng'],
+    ['nlTJ', 'Tổng quỹ lương – Lương thời gian', /Tổng quỹ lương/i, 'J', ''],
+    ['nlTL', 'Tổng quỹ lương – Lương nghỉ hưởng BHXH', /Tổng quỹ lương/i, 'L', ''],
+    ['nlTM', 'Tổng quỹ lương – Tổng số', /Tổng quỹ lương/i, 'M', ''],
+    ['nlTR', 'Tổng quỹ lương – Khấu trừ', /Tổng quỹ lương/i, 'R', '= 10,5% × Tổng lương thời gian'],
+    ['nlTS', 'Tổng quỹ lương – Kỳ II được lĩnh', /Tổng quỹ lương/i, 'S', '']
+  ] },
+  { sheet: 'BPB-Luong', title: 'Bảng phân bổ tiền lương và BHXH', qs: [
+    ['nlB622', 'Dòng TK 622 – Tổng cộng', /TK\s*622/i, 'M', 'Lương = Tổng số − Lương nghỉ (CN trực tiếp); 338 = 23,5% × Lương TG'],
+    ['nlB627', 'Dòng TK 627 – Tổng cộng', /TK\s*627/i, 'M', ''],
+    ['nlB641', 'Dòng TK 641 – Tổng cộng', /TK\s*641/i, 'M', ''],
+    ['nlB642', 'Dòng TK 642 – Tổng cộng', /TK\s*642/i, 'M', ''],
+    ['nlB334', 'Dòng TK 334 – Cộng có TK 338', /^TK\s*334/i, 'L', 'Chuyển 8% + 1,5% + 1% từ bảng lương sang'],
+    ['nlBG', 'Tổng cộng – Cộng có TK 334', /^Tổng cộng$/i, 'G', 'Có dòng 3383 (lương nghỉ) và 3531 (thưởng 12.200)'],
+    ['nlBL', 'Tổng cộng – Cộng có TK 338', /^Tổng cộng$/i, 'L', ''],
+    ['nlBM', 'Tổng cộng toàn bảng', /^Tổng cộng$/i, 'M', '']
+  ] },
+  { sheet: 'Ct-VL', title: 'Sổ chi tiết vật liệu và bảng tổng hợp', qs: [
+    ['nlV0bq', 'Đơn giá bình quân VL001', { vl: 0, col: 'F' }, '= 56.754 / 324 (không nhập thêm)'],
+    ['nlV0x', 'Giá trị xuất VL001 (300 kg)', { vl: 0, col: 'J' }, ''],
+    ['nlV1bq', 'Đơn giá bình quân VL002', { vl: 1, col: 'F' }, '= 34.678,216 / 210'],
+    ['nlV1x', 'Giá trị xuất VL002 (100 kg)', { vl: 1, col: 'J' }, ''],
+    ['nlV2bq', 'Đơn giá bình quân VL003', { vl: 2, col: 'F' }, '=(33.269,638 + 8.100 + 500)/(412 + 100) — nhớ cộng vận chuyển'],
+    ['nlV2x', 'Giá trị xuất VL003 (150 kg)', { vl: 2, col: 'J' }, ''],
+    ['nlV2c', 'Tồn cuối VL003', { vl: 2, col: 'L' }, ''],
+    ['nlTHJ', 'Bảng tổng hợp NVL – Cộng giá trị xuất', { sheet: 'BangTH-NVL', re: /^Cộng$/i, col: 'J' }, '']
+  ] },
+  { sheet: 'Pbo-kh', title: 'Bảng phân bổ khấu hao', qs: [
+    ['nlKT', 'KH tăng – máy xe sợi', /Thiết bị sản xuất|máy xe sợi/i, 'F', '=288000/12/12/31*(31-6+1)'],
+    ['nlKG', 'KH giảm – nhà kho bán hàng', /Nhà kho/i, 'F', '=180000/10/12/31*(31-20+1)'],
+    ['nlK627', 'KH phải trích – TK 627', /^IV\./i, 'G', '= 3.000 + KH tăng'],
+    ['nlK641', 'KH phải trích – TK 641', /^IV\./i, 'H', '= 1.000 − KH giảm'],
+    ['nlK642', 'KH phải trích – TK 642', /^IV\./i, 'I', '']
+  ] },
+  { sheet: 'Ct-621 · 622 · 627', title: 'Sổ chi tiết chi phí sản xuất', qs: [
+    ['nl621', 'Sổ 621 – Cộng phát sinh', { sheet: 'Ct-621', re: /Cộng số phát sinh/i, col: 'G' }, ''],
+    ['nl622', 'Sổ 622 – Cộng phát sinh', { sheet: 'Ct-622', re: /Cộng số phát sinh/i, col: 'G' }, ''],
+    ['nl627', 'Sổ 627 – Cộng phát sinh', { sheet: 'Ct-627', re: /Cộng số phát sinh/i, col: 'G' }, 'Lương + 338 + KH + điện 10.000']
+  ] },
+  { sheet: 'Ct-154 · B-TGTSP', title: 'Giá thành sản phẩm A', qs: [
+    ['nlDD1521', 'Dở dang cuối – VL chính', { sheet: 'B-TGTSP', re: /(NVL|Vật liệu) chính/i, col: 'E' }, '=(3470 + PS)/(30000 + 5000)*5000 — không nhân 30%'],
+    ['nlDD622', 'Dở dang cuối – Nhân công', { sheet: 'B-TGTSP', re: /Nhân công trực tiếp/i, col: 'E' }, '=(2525 + PS)/(30000 + 5000*30%)*5000*30%'],
+    ['nlDDT', 'Tổng dở dang cuối kỳ', { sheet: 'B-TGTSP', re: /^Tổng$/i, col: 'E' }, ''],
+    ['nlGT', 'Tổng giá thành 30.000 SP', { sheet: 'B-TGTSP', re: /^Tổng$/i, col: 'F' }, ''],
+    ['nlGDV', 'Giá thành đơn vị', { sheet: 'B-TGTSP', re: /^Tổng$/i, col: 'G' }, ''],
+    ['nl154', 'Sổ 154 – Số dư cuối kỳ', { sheet: 'Ct-154', re: /Số dư cuối kỳ/i, col: 'G' }, '']
+  ] },
+  { sheet: 'Ct-155 · 632 · 511', title: 'Thành phẩm, giá vốn, doanh thu', qs: [
+    ['nl155bq', 'Đơn giá bình quân thành phẩm', { sheet: 'Ct-155', re: /Cộng trong tháng/i, col: 'F' }, '=(24.400 + nhập)/(3.900 + 30.000)'],
+    ['nl155c', 'Tồn cuối thành phẩm', { sheet: 'Ct-155', re: /Cộng trong tháng/i, col: 'L' }, ''],
+    ['nl632', 'Sổ 632 – Tổng giá vốn', { sheet: 'Ct-632', re: /^Tổng$/i, col: 'I' }, '= 27.400 SP × đơn giá bình quân'],
+    ['nl511', 'Sổ 511 – Cộng doanh thu', { sheet: 'Ct-511', re: /Cộng số phát sinh/i, col: 'I' }, ''],
+    ['nl521', 'Chiết khấu thương mại Cty Z', { sheet: 'Ct-511', re: /Cộng số phát sinh/i, col: 'J' }, '= 1% × 90.000'],
+    ['nlLG', 'Lãi gộp tiêu thụ', { sheet: 'Ct-511', re: /Lãi gộp/i, col: 'I' }, '']
+  ] },
+  { sheet: 'Ct-641 · 642 · 911 · BCKQKD', title: 'Chi phí, 911 và báo cáo kết quả kinh doanh', qs: [
+    ['nl641', 'Sổ 641 – Cộng phát sinh', { sheet: 'Ct-641', re: /Cộng số phát sinh/i, col: 'G' }, 'Có điện 2.000'],
+    ['nl642', 'Sổ 642 – Cộng phát sinh', { sheet: 'Ct-642', re: /Cộng số phát sinh/i, col: 'G' }, 'Có VPP 4.000, sửa máy 200, điện 5.000'],
+    ['nlThue', 'Chi phí thuế TNDN', { sheet: 'Ct-911', re: /chi phí thuế thu nhập/i, col: 'G' }, '= 20% × lợi nhuận trước thuế'],
+    ['nl911', 'Sổ 911 – Cộng số PS nợ', { sheet: 'Ct-911', re: /Cộng số PS nợ/i, col: 'G' }, 'Phải bằng Cộng PS có'],
+    ['nlLNT', 'BCKQKD – LN thuần từ HĐKD', { sheet: 'BCKQKD', re: /^10\./, col: 'D' }, ''],
+    ['nlLNTT', 'BCKQKD – LN trước thuế', { sheet: 'BCKQKD', re: /^14\./, col: 'D' }, ''],
+    ['nlLNST', 'BCKQKD – LN sau thuế', { sheet: 'BCKQKD', re: /^16\./, col: 'D' }, '']
+  ] },
+  { sheet: 'So NKC', title: 'Nhật ký chung, sổ cái 111, cân đối', qs: [
+    ['nl111N', 'Sổ cái 111 – Cộng PS Nợ', { sheet: 'So NKC', re: /Cộng số phát sinh/i, col: 'F' }, 'Lọc Advanced Filter các dòng có 111'],
+    ['nl111C', 'Sổ cái 111 – Cộng PS Có', { sheet: 'So NKC', re: /Cộng số phát sinh/i, col: 'G' }, ''],
+    ['nl111', 'Sổ cái 111 – Số dư cuối kỳ', { sheet: 'So NKC', re: /Số dư cuối kỳ/i, col: 'F' }, '= 120.000 + PS Nợ − PS Có'],
+    ['nlCDPS', 'Bảng cân đối TK – Tổng PS Nợ', { sheet: 'So NKC', re: /^Tổng$/i, col: 'M', cols: 16 }, 'SUMIF theo 3 số đầu TK trên sổ NKC'],
+    ['nlCDCK', 'Bảng cân đối TK – Tổng dư Nợ cuối kỳ', { sheet: 'So NKC', re: /^Tổng$/i, col: 'O', cols: 16 }, ''],
+    ['nlTSNH', 'Bảng CĐKT – Tổng tài sản ngắn hạn', { sheet: 'So NKC', re: /Tổng TSNH/i, col: 'L', cols: 16 }, ''],
+    ['nlTSDH', 'Bảng CĐKT – Tổng tài sản dài hạn', { sheet: 'So NKC', re: /Tổng TSDH/i, col: 'L', cols: 16 }, '214 ghi âm'],
+    ['nlNPT', 'Bảng CĐKT – Tổng nợ phải trả', { sheet: 'So NKC', re: /Tổng NPT/i, col: 'L', cols: 16 }, ''],
+    ['nlVCSH', 'Bảng CĐKT – Tổng vốn chủ sở hữu', { sheet: 'So NKC', re: /Tổng Vốn CSH/i, col: 'L', cols: 16 }, '421 = 450.000 + LN sau thuế']
+  ] }
+];
+// Chuẩn hóa: [id, label, tìm, cột, cách tính] hoặc [id, label, {sheet, re, col}, cách tính]
+function nlSections(V) {
+  return NL_SPEC.map((s, k) => ({
+    id: 'n' + (k + 1), sheet: s.sheet, title: s.title,
+    qs: s.qs.map(a => {
+      let tim, f;
+      if (a[2] instanceof RegExp) { tim = { sheet: s.sheet, re: a[2], col: a[3] }; f = a[4]; }
+      else { tim = a[2].vl != null ? { sheet: 'Ct-VL', vl: a[2].vl, col: a[2].col } : a[2]; f = a[3]; }
+      return { id: a[0], label: a[1], tim, f: f || '', v: V ? V[a[0]] : null };
+    })
+  }));
+}
+const NL_DE = { id: 'nhatlinh', ma: 'NL', cty: 'Nhất Linh', thang: 8,
+  vl: [{ ten: 'VL001', khop: '001|15211' }, { ten: 'VL002', khop: '002|15212' }, { ten: 'VL003', khop: '003|15213' }] };
+if (typeof module !== 'undefined') module.exports = { NL_SPEC, nlSections, NL_DE };
+
+const NL_V = {"nlX_J":19107.692307692305,"nlX_L":2492.3076923076924,"nlX_S":18093.692307692305,"nlD_M":5840,"nlB_H":600,"nlTH":23500,"nlTJ":204545.76923076922,"nlTL":10644.23076923077,"nlTM":238690,"nlTR":21477.30576923077,"nlTS":198712.69423076924,"nlB622":94747.925,"nlB627":34794.225000000006,"nlB641":47614.175,"nlB642":98957.70000000001,"nlB334":21477.30576923077,"nlBG":250890.00000000003,"nlBL":69545.56153846154,"nlBM":320435.56153846154,"nlV0bq":175.16666666666666,"nlV0x":52550,"nlV1bq":165.1343619047619,"nlV1x":16513.43619047619,"nlV2bq":81.77663671875,"nlV2x":12266.4955078125,"nlV2c":29603.1424921875,"nlTHJ":81329.9316982887,"nlKT":1677.4193548387098,"nlKG":580.6451612903227,"nlK627":4677.41935483871,"nlK641":419.3548387096773,"nlK642":3000,"nl621":81329.9316982887,"nl622":94747.925,"nl627":49471.64435483872,"nlDD1521":12114.275956898386,"nlDD622":4632.044047619047,"nlDDT":19151.28402141451,"nlGT":213425.81703171288,"nlGDV":7.114193901057097,"nl154":19151.284021414525,"nl155bq":7.015510826894186,"nl155c":45600.82037481221,"nl632":192224.99665690068,"nl511":411000,"nl521":900,"nlLG":217875.00334309932,"nl641":50033.52983870968,"nl642":111157.70000000001,"nlThue":9536.754700877926,"nl911":422100,"nlLNT":46683.773504389625,"nlLNTT":47683.773504389625,"nlLNST":38147.0188035117,"nl111N":342000,"nl111C":396221.69230769225,"nl111":65778.30769230775,"nlCDPS":4021777.887727642,"nlCDCK":4509325.475843214,"nlTSNH":2301325.4758432144,"nlTSDH":1969903.225806452,"nlNPT":1297852.228846154,"nlVCSH":2973376.4728035117};
+
 
 const $ = s => document.querySelector(s);
 const store = {
@@ -1120,6 +1244,7 @@ document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => { mo
 /* ===== Đề ===== */
 let DE, KQ, SECTIONS, ANS, KIND;
 function layDe(kind) {
+  if (kind === 'nhatlinh') return NL_DE;
   if (kind === 'quocan') return DE_QUOC_AN;
   if (kind === 'hoanganh') return DE_HOANG_ANH;
   let seed = store.get('seed', 0);
@@ -1221,14 +1346,19 @@ function capNhatDiem() {
 }
 
 function napDe(kind) {
-  KIND = kind; DE = layDe(kind); KQ = tinhDe(DE); SECTIONS = buildSections(DE, KQ);
+  KIND = kind; DE = layDe(kind);
+  if (kind === 'nhatlinh') { KQ = null; SECTIONS = nlSections(NL_V); } else { KQ = tinhDe(DE); SECTIONS = buildSections(DE, KQ); }
   store.set('de', kind);
   document.querySelectorAll('input[name="de"]').forEach(r => r.checked = r.value === kind);
   $('#deKhac').hidden = kind !== 'rand';
   $('#dangChon').innerHTML = `Đang chọn: <strong>Công ty ${esc(DE.cty)}</strong> · mã đề <b>${esc(DE.ma)}</b>`;
   $('#oMa').value = '';
   $('#taiDe').textContent = 'Tải file đề Excel (mã ' + DE.ma + ')';
-  renderDe(DE); renderSections();
+  $('#moTaTai').innerHTML = kind === 'nhatlinh'
+    ? 'File đề trống của lớp: đủ 19 sheet, sổ Nhật ký chung đã có sẵn định khoản. Làm theo 10 yêu cầu của bài Nhất Linh trong tài liệu.'
+    : 'File có sẵn sheet <b>Câu hỏi</b> và các bảng trống: bảng lương, phân bổ, vật liệu, khấu hao, giá thành, 911.';
+  if (kind === 'nhatlinh') renderDeNL(); else renderDe(DE);
+  renderSections();
   document.querySelectorAll('#sheets .q').forEach(qd => { if (qd.querySelector('input').value.trim()) chamQ(qd, true); });
   capNhatDiem();
 }
@@ -1236,13 +1366,14 @@ document.querySelectorAll('input[name="de"]').forEach(r => r.onchange = () => { 
 $('#deKhac').onclick = () => { store.set('seed', Math.floor(Math.random() * 9000) + 1000); $('#ketQua').hidden = true; napDe('rand'); toast('Đề mới: Công ty ' + DE.cty + ', mã ' + DE.ma); };
 function moMa(v) {
   v = String(v || '').trim().toUpperCase();
+  if (v === 'NL') { napDe('nhatlinh'); return true; }
   if (v === 'QA') { napDe('quocan'); return true; }
   if (v === 'HA') { napDe('hoanganh'); return true; }
   const n = parseInt(v, 10);
   if (!(n >= 1 && n <= 999999) || String(n) !== v) return false;
   store.set('seed', n); napDe('rand'); return true;
 }
-$('#formMa').addEventListener('submit', e => { e.preventDefault(); if (moMa($('#oMa').value)) { $('#ketQua').hidden = true; toast('Đã mở đề mã ' + DE.ma); } else toast('Mã đề là QA, HA hoặc một số từ 1 đến 999999.'); });
+$('#formMa').addEventListener('submit', e => { e.preventDefault(); if (moMa($('#oMa').value)) { $('#ketQua').hidden = true; toast('Đã mở đề mã ' + DE.ma); } else toast('Mã đề là NL, QA, HA hoặc một số từ 1 đến 999999.'); });
 $('#xemDeBtn').onclick = () => { const d = $('#xemDe'); d.open = true; d.scrollIntoView?.({ behavior: 'smooth', block: 'start' }); };
 $('#chamHet').onclick = () => { SECTIONS.forEach(s => chamSection(s.id)); toast('Đã chấm: ' + $('#diem').textContent); };
 
@@ -1263,6 +1394,11 @@ $('#taiDe').onclick = async () => {
   const b = $('#taiDe'), cu = b.textContent; b.disabled = true; b.textContent = 'Đang tạo file…';
   try {
     await canExcelJS();
+    if (KIND === 'nhatlinh') {
+      const r0 = await fetch('de-nhat-linh.xlsx'); if (!r0.ok) throw new Error('Không tải được file đề Nhất Linh.');
+      taiXuong(await r0.arrayBuffer(), 'De tong hop - Nhat Linh.xlsx'); toast('Đã tải đề Nhất Linh');
+      b.disabled = false; b.textContent = cu; return;
+    }
     const res = await fetch('de-mau.xlsx'); if (!res.ok) throw new Error('Không tải được file đề mẫu.');
     const wb = new ExcelJS.Workbook(); await wb.xlsx.load(await res.arrayBuffer());
     dienFileMau(wb, DE);
@@ -1450,32 +1586,42 @@ function renderFin() {
 }
 
 
-/* ===== Nhất Linh ===== */
-function renderNL() {
-  const r = (a, b) => ({ c: [a, b] });
-  $('#nlBody').innerHTML = `
-    <div><h2>Đáp án bài tổng hợp Công ty Nhất Linh (tháng 8)</h2>
-    <p class="muted" style="max-width:70ch">Các con số dưới đây khớp nhau giữa nhiều bài giải trong lớp. Tháng 8 có 31 ngày; nhân viên chỉ nghỉ Chủ nhật nên ngày công chuẩn là 26; lương tối thiểu 2.700.</p></div>
-    <div class="grid2">
-      <div class="card"><span class="src">Btt-Luong · BPB-Luong</span>${table(['Chỉ tiêu', N('Số tiền')], [
-        r('Tổng lương sản phẩm', '23.500'), r('Tổng lương thời gian', '204.545,8'), r('Tổng lương nghỉ hưởng BHXH', '10.644,2'), r('Tổng quỹ lương', '238.690'), r('Tạm ứng kỳ I', '18.500'),
-        r('Khấu trừ (8% + 1,5% + 1%)', '21.477,3'), r('Kỳ II được lĩnh', '198.712,7'), r('Phân bổ: dòng 622 tổng cộng', '94.747,9'), r('Phân bổ: dòng 627 tổng cộng', '34.794,2'),
-        r('Phân bổ: dòng 641 tổng cộng', '47.614,2'), r('Phân bổ: dòng 642 tổng cộng', '98.957,7'), r('Cộng có 338', '69.545,6'), r('Tổng cộng bảng phân bổ', '320.435,6')].map(x => ({ c: [x.c[0], `<span class="num">${x.c[1]}</span>`] })), 'kv')}</div>
-      <div class="card"><span class="src">Ct-VL · Pbo-kh</span>${table(['Chỉ tiêu', N('Số tiền')], [
-        r('Đơn giá bình quân VL001 (không nhập)', '175,17'), r('Xuất 300 kg VL001', '52.550'), r('Đơn giá bình quân VL002', '165,13'), r('Xuất 100 kg VL002', '16.513,4'),
-        r('Đơn giá bình quân VL003 (nhập 8.100 + vận chuyển 500)', '81,8'), r('Xuất 150 kg VL003', '12.266,5'), r('Tổng ghi Nợ 621', '81.329,9'),
-        r('KH tăng máy xe sợi: 288.000/12/12/31×26', '1.677,4'), r('KH giảm nhà kho BH: 180.000/10/12/31×12', '580,6'), r('KH phải trích: 627 / 641 / 642', '4.677,4 / 419,4 / 3.000')].map(x => ({ c: [x.c[0], `<span class="num">${x.c[1]}</span>`] })), 'kv')}</div>
-      <div class="card"><span class="src">B-TGTSP · Ct-154</span>${table(['Chỉ tiêu', N('Số tiền')], [
-        r('Dở dang đầu kỳ', '7.027,6'), r('Chi phí phát sinh (621 + 622 + 627)', '225.549,5'), r('Dở dang cuối: VL chính (5.000 SP thực)', '12.114,3'),
-        r('Dở dang cuối: 622 (quy đổi 5.000 × 30%)', '4.632,0'), r('Dở dang cuối: 627', '2.405,0'), r('Tổng dở dang cuối kỳ', '19.151,3'), r('Tổng giá thành 30.000 SP', '213.425,8'), r('Giá thành đơn vị', '7,114')].map(x => ({ c: [x.c[0], `<span class="num">${x.c[1]}</span>`] })), 'kv')}</div>
-      <div class="card"><span class="src">BCKQKD</span>${table(['Chỉ tiêu', N('Số tiền')], [
-        r('Doanh thu bán hàng', '411.000'), r('Giảm trừ (chiết khấu 1% Cty Z)', '900'), r('Doanh thu thuần', '410.100'), r('Giá vốn hàng bán', '192.225,0'), r('Lợi nhuận gộp', '217.875,0'),
-        r('Chi phí tài chính', '10.000'), r('Chi phí bán hàng', '50.033,5'), r('Chi phí quản lý DN', '111.157,7'), r('Thu nhập khác / Chi phí khác', '12.000 / 11.000'),
-        r('Lợi nhuận trước thuế', '47.683,8'), r('Thuế TNDN 20%', '9.536,8'), r('Lợi nhuận sau thuế', '38.147,0')].map(x => ({ c: [x.c[0], `<span class="num">${x.c[1]}</span>`] })), 'kv')}</div>
-    </div>
-    <div class="note"><b>Lỗi hay gặp ở bảng giá thành:</b> ô dở dang VL chính dùng =D7/C7 (ra 23,4). Đúng là =(C7+D7)/(30000+5000)*5000 = 12.114,3. Vì vậy giá thành đơn vị ra 7,52 thay vì 7,114. Một lỗi khác là lấy số từ file Excel khác (dạng [2]Ct-154), mở trên máy khác sẽ mất số; hoặc gõ tay số khấu hao 1677 thay vì =F11.</div>`;
+/* ===== Đề Nhất Linh: nội dung đề và bảng đáp án chuẩn ===== */
+function renderDeNL() {
+  $('#xemDe summary').textContent = 'Nội dung đề: Công ty Nhất Linh (mã NL)';
+  $('#deBody').innerHTML = `
+    <div><h4>Nguồn đề</h4><p>Phần I – Bài tập kế toán tổng hợp trong tài liệu “Bài tập Tin học ứng dụng trong kế toán”, Khoa Kinh tế. Đề đầy đủ 31 nghiệp vụ có trong file PDF của lớp.</p></div>
+    <div><h4>Số liệu chính</h4><ul>
+      <li>Tháng 8/N, đơn vị 1.000đ. Lương tối thiểu <b class="num">2.700</b>; nhân viên chỉ nghỉ Chủ nhật → <b>26 ngày công</b>.</li>
+      <li>Vật liệu tồn đầu: VL001 324 kg – 56.754; VL002 210 kg – 34.678,216; VL003 412 kg – 33.269,638. Ngày 5/8 nhập 100 kg VL003 giá 81 + vận chuyển 500. Ngày 6/8 xuất 300 / 100 / 150 kg.</li>
+      <li>Khấu hao tháng 7: PX 3.000, BH 1.000, QLDN 3.000. Tăng máy xe sợi 288.000 (12 năm) ngày 6/8; giảm nhà kho BH 180.000 (10 năm) ngày 20/8. Tháng 8 có 31 ngày.</li>
+      <li>Dở dang đầu kỳ 7.027,6 (VL chính 3.470, NC 2.525, SXC 1.032,6). Hoàn thành 30.000 SP A; dở dang 5.000 SP, mức độ 30%.</li>
+      <li>Thành phẩm tồn đầu 3.900 SP – 24.400. Bán 27.400 SP giá 15; chiết khấu 1% cho Cty Z trên HĐ 01947.</li>
+      <li>Thưởng thi đua 12.200; điện: PX 10.000, BH 2.000, VP 5.000; lãi vay 10.000; thanh lý nhà kho: còn lại 10.000, chi 1.000, thu phế liệu 12.000; thuế TNDN 20%.</li></ul></div>
+    <div><h4>10 yêu cầu</h4><ul>
+      <li>Bảng thanh toán lương; bảng phân bổ lương và BHXH.</li>
+      <li>Tính giá vật liệu; bảng phân bổ khấu hao; giá thành SP A.</li>
+      <li>Sổ chi tiết 621, 622, 627, 154, 641, 642, 511, 911.</li>
+      <li>Sổ Nhật ký chung, kết chuyển cuối kỳ, xác định kết quả kinh doanh.</li>
+      <li>Sổ cái TK 111, sổ thu chi tiền mặt; bảng cân đối tài khoản, báo cáo số dư cuối kỳ, bảng cân đối kế toán; biểu đồ cơ cấu tài sản và nguồn vốn.</li></ul></div>`;
 }
-
+function renderNL() {
+  const secs = nlSections(NL_V);
+  $('#nlBody').innerHTML = `
+    <div><h2>Đáp án chuẩn bài Nhất Linh (tháng 8)</h2>
+    <p class="muted" style="max-width:70ch;margin-top:6px">Lấy từ bài giải đầy đủ nhất của lớp: làm đủ 10 yêu cầu, bảng cân đối kế toán cân (tổng tài sản = tổng nguồn vốn = 4.271.228,7). Đây cũng là đáp án web dùng để chấm khi bạn nộp bài Nhất Linh.</p></div>
+    <div class="grid2">${secs.map(s => `<div class="card"><span class="src">${esc(s.sheet)}</span><h3>${esc(s.title)}</h3>${table(['Chỉ tiêu', N('Đáp án')],
+      s.qs.map(q => ({ c: [esc(q.label) + (q.f ? `<br><span class="muted" style="font-size:12px">${esc(q.f)}</span>` : ''), `<span class="num">${fmt(q.v)}</span>`] })), 'kv')}</div>`).join('')}</div>
+    <div class="card"><span class="src">Đã kiểm tra</span><p>54 ô từ bảng lương đến báo cáo kết quả kinh doanh được tính lại độc lập từ số liệu đề, khớp hoàn toàn. Phần sổ cái 111 và bảng cân đối kế toán soát lại từng tài khoản, cũng khớp.</p>
+      <p><b>Các chỗ đề viết chưa rõ, đáp án đang hiểu như sau</b> (nếu cô chấm khác thì các số liên quan sẽ đổi):</p>
+      <ul style="margin:0;padding-left:18px">
+        <li>NV27 “thanh toán 60% lương”: lấy 60% × cột Lương của bảng phân bổ (228.045,8) = 136.827,5; BHXH và thưởng trả riêng 100%. Ảnh hưởng: sổ cái 111, TK 334, tổng tài sản ngắn hạn, nợ phải trả.</li>
+        <li>Tạm ứng kỳ I (18.500) chỉ trừ trong bảng lương, không ghi thêm bút toán chi tạm ứng vì đề không có nghiệp vụ này.</li>
+        <li>Không làm bút toán khấu trừ thuế GTGT cuối kỳ: TK 133 còn dư 30.060, TK 333 còn 41.010. Nếu khấu trừ thì cả hai cùng giảm 30.060.</li>
+        <li>NV16: chi phí khác = giá trị còn lại 10.000 + chi thanh lý 1.000 = 11.000; KH giảm tính 12 ngày (20–31/8).</li>
+      </ul></div>
+    <div class="note"><b>Lỗi hay gặp ở bài này:</b> ô dở dang VL chính dùng =D7/C7 (ra 23,4) thay vì =(C7+D7)/(30000+5000)*5000 = 12.114,3, làm giá thành đơn vị thành 7,52 thay vì 7,114. Công thức đơn giá bình quân viết =(L11+H15)/K11+G15 (thiếu ngoặc) chỉ đúng khi không có nhập trong kỳ; hãy viết =(L11+H15)/(K11+G15). Bỏ phần lẻ 33.269,638 thành 33.269 làm giá xuất VL003 lệch 0,19.</div>`;
+}
 
 /* ===== Bẫy & mẹo ===== */
 function renderMeo() {
