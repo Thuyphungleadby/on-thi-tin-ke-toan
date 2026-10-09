@@ -165,6 +165,30 @@ code.i{font-family:var(--f-num);font-size:13px;background:var(--paper);padding:1
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:var(--r);font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100vw - 32px)}
 .toast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* Đề hàm tài chính tự động */
+.htc-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--sheet);border:1px solid var(--rule-strong);border-radius:var(--r);padding:14px 16px}
+.htc-bar select{font:inherit;font-size:15px;padding:8px 10px;border:1px solid var(--rule-strong);border-radius:6px;background:var(--paper);color:var(--ink);max-width:100%;min-width:0;flex:1 1 280px}
+.htc-ma{font-family:var(--f-num);font-weight:600;color:var(--accent)}
+.card.htc .fx{display:block;font-family:var(--f-num);font-size:12px;color:var(--muted);white-space:pre-wrap;word-break:break-word}
+.card.htc td{white-space:normal;vertical-align:top}
+.card.htc td.n{white-space:nowrap}
+.card.htc .kl{font-size:14px;background:var(--accent-soft);padding:8px 10px;border-radius:6px;margin-top:8px}
+/* Thẻ ghi nhớ */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chipbtn{font:inherit;font-size:14px;border:1px solid var(--rule-strong);background:var(--sheet);color:var(--ink);border-radius:16px;padding:5px 12px;cursor:pointer}
+.chipbtn span{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+.chipbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chipbtn[aria-pressed="true"] span{color:inherit;opacity:.8}
+.fc-wrap{max-width:720px;display:grid;gap:14px}
+.fc-the{min-height:250px;background:var(--sheet);border:1px solid var(--rule-strong);border-radius:12px;padding:22px 24px;display:flex;flex-direction:column;gap:12px;cursor:pointer;box-shadow:0 1px 0 var(--rule)}
+.fc-the.lat{border-color:var(--accent)}
+.fc-q{font-family:var(--f-display);font-size:24px;line-height:1.25;font-weight:650;margin:0;text-wrap:balance}
+.fc-a{white-space:pre-wrap;font-size:16px;border-top:1px dashed var(--rule-strong);padding-top:12px}
+.fc-nav{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fc-nav .grow{flex:1}
+.fc-top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.btn.ok{border-color:var(--ok);color:var(--ok)}
+.btn.no{border-color:var(--bad);color:var(--bad)}
 </style>
 </head>
 <body>
@@ -174,6 +198,7 @@ code.i{font-family:var(--f-num);font-size:13px;background:var(--paper);padding:1
     <nav class="tabs" role="tablist">
       <button role="tab" data-tab="lam" aria-selected="true">Làm đề</button>
       <button role="tab" data-tab="ham" aria-selected="false">Hàm tài chính</button>
+      <button role="tab" data-tab="the" aria-selected="false">Thẻ ghi nhớ</button>
       <button role="tab" data-tab="tracuu" aria-selected="false">Tra cứu</button>
     </nav>
   </header>
@@ -232,9 +257,40 @@ code.i{font-family:var(--f-num);font-size:13px;background:var(--paper);padding:1
   <section class="pane" id="p-ham" hidden>
     <div class="stack">
       <div class="intro"><h2>Hàm tài chính</h2>
-        <p class="lead">Bài tập Phần II trong tài liệu và 5 bài trong file Word. Gõ đáp số rồi bấm Kiểm tra; bấm Xem lời giải để thấy công thức Excel.</p></div>
-      <div class="grid2" id="finCards"></div>
+        <p class="lead">Đề tự động: mỗi lần bấm ra đề mới với số liệu khác, theo đúng các dạng bài mẫu trong tài liệu và file Word. Làm ra giấy hoặc Excel rồi bấm Xem đáp án để so.</p></div>
+      <div class="htc-bar">
+        <select id="htcLoai" aria-label="Chọn dạng đề"></select>
+        <button class="btn primary" id="htcMoi" type="button">Tạo đề mới</button>
+        <button class="btn" id="htcTatCa" type="button">Hiện tất cả đáp án</button>
+        <span class="small">Mã đề <span class="htc-ma" id="htcMaHien"></span></span>
+        <form class="ma" id="htcForm"><label for="htcOMa">Mở mã</label><input id="htcOMa" autocomplete="off" placeholder="VD H12345"><button class="btn" type="submit">Mở</button></form>
+      </div>
+      <div class="grid2" id="htcBai"></div>
+      <details class="phu"><summary>Bài tập gốc trong tài liệu và file Word (có ô tự chấm)</summary><div class="in"><div class="grid2" id="finCards"></div></div></details>
       <div><h2 style="font-size:21px;margin-bottom:10px">Tra cứu nhanh cú pháp</h2><div class="fnref" id="fnRef"></div></div>
+    </div>
+  </section>
+
+  <section class="pane" id="p-the" hidden>
+    <div class="stack">
+      <div class="intro"><h2>Thẻ ghi nhớ</h2>
+        <p class="lead">Công thức, tỷ lệ, định khoản, cú pháp hàm và đáp số chốt của cả bộ đề. Bấm vào thẻ để lật; đánh dấu thẻ đã thuộc để lần sau chỉ ôn thẻ còn lại.</p></div>
+      <div class="chips" id="fcChu"></div>
+      <div class="fc-wrap">
+        <div class="fc-top"><label class="small"><input type="checkbox" id="fcChua"> Chỉ thẻ chưa thuộc</label>
+          <div class="score"><span id="fcThuocSo" class="num"></span><div class="bar"><i id="fcBar"></i></div></div></div>
+        <div class="fc-the" id="fcThe" role="button" tabindex="0" aria-live="polite"></div>
+        <div class="fc-nav">
+          <button class="btn" id="fcTruoc" type="button">← Trước</button>
+          <button class="btn primary" id="fcLat" type="button">Lật thẻ</button>
+          <button class="btn" id="fcSau" type="button">Sau →</button>
+          <span class="grow num small" id="fcViTri"></span>
+          <button class="btn no" id="fcChuaThuoc" type="button">Chưa thuộc</button>
+          <button class="btn ok" id="fcDaThuoc" type="button">Đã thuộc</button>
+        </div>
+        <div class="fc-nav"><button class="btn" id="fcTron" type="button">Trộn thẻ</button><button class="link" id="fcXoa" type="button">Đặt lại tiến độ</button>
+          <span class="small">Phím tắt: Space lật · ← → chuyển · 1 chưa thuộc · 2 đã thuộc</span></div>
+      </div>
     </div>
   </section>
 
@@ -1659,11 +1715,452 @@ function renderMeo() {
 
 
 
+/* ===== Đề hàm tài chính tự động ===== */
+const HTC_DANG = {
+  FV: 'Gửi tiết kiệm – FV (BT3, BT4)', PV: 'Giá trị hiện tại – PV (BT1)', PA: 'Chọn phương án thanh toán – PV (BT2)',
+  FVS: 'Lãi suất thay đổi – FVSCHEDULE (BT6)', FVS5: 'Nhiều phương án lãi thay đổi – FVSCHEDULE (BT7)',
+  PMT: 'Trả góp, tích lũy – PMT (BT8, BT9)', TRAGOP: 'Trả góp, so sánh người bán – PMT (Word bài 2)',
+  NPER: 'Số kỳ trả nợ – NPER (BT10)', VAY: 'Vay trả trong 1 năm / trả được bao lâu – PMT, NPER (Word bài 4)', RATE: 'Lãi suất trả góp – RATE',
+  NPV: 'Dự án đầu tư – NPV', NPV2: 'NPV đầu tư cuối và đầu chu kỳ (ví dụ anh Thảo)', NPV3: 'Chọn 1 trong 3 dự án – NPV (BT5)',
+  IRR: 'Có nên vay đầu tư – IRR, NPV (BT11)', THUE: 'Thuê hay mua – PV, IRR (Word bài 3)',
+  MAY: 'Mua máy: khấu hao 2 lần/năm và gửi theo quý – SYD, FV (Word bài 1)',
+  SLN: 'Khấu hao đường thẳng – SLN', SYD: 'Khấu hao tổng số năm – SYD', SYDB: 'Khấu hao từng năm – SYD (BT12)',
+  DB: 'Khấu hao số dư cố định – DB', DBM: 'Máy mua cuối tháng, khấu hao các năm – DB (BT13)',
+  DDB: 'Khấu hao giảm dần kép theo ngày/tháng/năm – DDB (BT14)', VDB: 'Khấu hao khoảng bất kỳ – VDB',
+  VDBN: 'Khấu hao giữa hai ngày cụ thể – VDB (BT15)', VAYCK: 'Vay trả góp và mua chứng khoán – PMT, ACCRINTM (Word bài 5)',
+  CK: 'Chứng khoán – ACCRINTM, INTRATE, RECEIVED, DISC, PRICEMAT'
+};
+const HTC_NHOM = [['FV', 'PV', 'PA', 'FVS', 'FVS5'], ['PMT', 'TRAGOP', 'NPER', 'VAY', 'RATE'], ['NPV', 'NPV2', 'NPV3', 'IRR', 'THUE'], ['MAY', 'SLN', 'SYD', 'SYDB', 'DB', 'DBM', 'DDB', 'VDB', 'VDBN'], ['CK', 'VAYCK']];
+const HO = ['Anh Minh', 'Chị Lan', 'Anh Tuấn', 'Chị Hà', 'Anh Nam', 'Chị Mai', 'Anh Hùng', 'Chị Thảo', 'Anh Phong', 'Chị Ngọc'];
+const CTY = ['Công ty Phú Gia', 'Công ty Bình Minh', 'Công ty An Phát', 'Xí nghiệp Hồng Hà', 'Công ty Thành Đạt', 'Nhà máy Sông Đà', 'Công ty Minh Long'];
+const MAY = ['máy tiện', 'xe tải', 'dây chuyền đóng gói', 'máy photocopy', 'máy nén khí', 'ô tô giao hàng', 'máy in công nghiệp'];
+
+function sinhBai(dang, seed) {
+  const r = rng(seed);
+  const ri = (a, b) => a + Math.floor(r() * (b - a + 1));
+  const pick = a => a[Math.floor(r() * a.length)];
+  const so = (v, d = 2) => Number(v).toLocaleString('vi-VN', { maximumFractionDigits: d });
+  const pc = v => so(v * 100, 3) + '%';
+  const fx = v => String(+(+v).toFixed(6));        // số viết trong công thức
+  const fp = v => fx(v * 100) + '%';
+  const ai = pick(HO), ct = pick(CTY);
+  const dauCuoi = () => (r() < 0.5 ? 0 : 1);
+  const tenKy = t => (t ? 'đầu' : 'cuối');
+  const B = { dang, ten: HTC_DANG[dang], qs: [] };
+  const q = (l, v, f, pct) => B.qs.push({ l, v, f, pct: !!pct });
+
+  if (dang === 'FV') {
+    const P = ri(5, 60) * 10, m = ri(1, 10) * 10, rn = ri(40, 90) / 1000, n = ri(2, 10), t = dauCuoi();
+    if (r() < 0.4) {
+      B.de = `${ai} gửi ${so(P)} triệu đồng vào ngân hàng, lãi suất ${pc(rn)}/năm, lãi nhập gốc hằng năm. Sau ${n} năm ${ai} nhận được bao nhiêu?`;
+      q('Số tiền nhận được (triệu)', F.FV(rn, n, 0, -P), `=FV(${fp(rn)},${n},0,-${P})`);
+      B.kl = 'Gửi một lần nên Pmt = 0, số tiền gửi là Pv và ghi âm vì là tiền bỏ ra.';
+    } else {
+      B.de = `${ai} có ${so(P)} triệu gửi tiết kiệm lãi ${pc(rn)}/năm. ${t ? 'Đầu' : 'Cuối'} mỗi tháng gửi thêm ${so(m)} triệu trong ${n} năm. Hỏi sau ${n} năm có bao nhiêu tiền?`;
+      q('Số tiền sau ' + n + ' năm (triệu)', F.FV(rn / 12, n * 12, -m, -P, t), `=FV(${fp(rn)}/12,${n}*12,-${m},-${P},${t})`);
+      B.kl = `Gửi theo tháng nên lãi chia 12, số kỳ nhân 12. Gửi ${tenKy(t)} tháng nên Type = ${t}.`;
+    }
+  } else if (dang === 'PV') {
+    const X = ri(10, 50) * 10, rn = ri(50, 150) / 1000, n = ri(3, 10);
+    if (r() < 0.5) {
+      B.de = `${ai} muốn có ${so(X)} triệu sau ${n} năm nữa. Tỷ suất sinh lời ${pc(rn)}/năm. Ngay bây giờ phải bỏ vào bao nhiêu?`;
+      q('Số tiền bỏ ra hôm nay (triệu)', F.PV(rn, n, 0, X), `=PV(${fp(rn)},${n},0,${X})`);
+      B.kl = 'Kết quả âm vì đây là tiền phải bỏ ra.';
+    } else {
+      const A = ri(10, 40) * 5, gia = Math.round(-F.PV(rn, n, A) * (0.85 + r() * 0.3));
+      B.de = `${ct} được chào mua một khoản đầu tư giá ${so(gia)} triệu, cuối mỗi năm thu về ${so(A)} triệu trong ${n} năm. Lãi suất thị trường ${pc(rn)}/năm. Có nên mua không?`;
+      const pv = F.PV(rn, n, A);
+      q('Giá trị hiện tại các khoản thu (triệu)', pv, `=PV(${fp(rn)},${n},${A})`);
+      B.kl = `Giá trị hiện tại ≈ ${so(-pv)} triệu ${-pv > gia ? 'lớn hơn' : 'nhỏ hơn'} giá chào ${so(gia)} triệu nên ${-pv > gia ? 'nên mua' : 'không nên mua'}.`;
+    }
+  } else if (dang === 'FVS') {
+    const P = ri(5, 50) * 100, n = ri(3, 5), ls = Array.from({ length: n }, () => ri(20, 90) / 1000), nam = ri(2018, 2024);
+    B.de = `Ngày 1/1/${nam} ${ai} gửi ${so(P)} triệu, kỳ hạn ${n} năm, lãi suất từng năm lần lượt ${ls.map(pc).join('; ')}. Hết kỳ hạn nhận bao nhiêu?`;
+    q('Số tiền cuối kỳ (triệu)', F.FVSCHEDULE(P, ls), `=FVSCHEDULE(${P},{${ls.map(fp).join(',')}})`);
+    B.kl = 'Lãi suất mỗi năm khác nhau thì dùng FVSCHEDULE, không dùng FV.';
+  } else if (dang === 'PMT') {
+    const t = dauCuoi(), rn = ri(50, 160) / 1000, n = ri(1, 5);
+    if (r() < 0.6) {
+      const G = ri(10, 60) * (r() < 0.5 ? 1 : 10);
+      B.de = `${ai} mua trả góp một ${pick(['xe máy', 'máy tính', 'điện thoại', 'tủ lạnh'])} giá ${so(G)} triệu trong ${n} năm, lãi ${pc(rn)}/năm, trả ${tenKy(t)} mỗi tháng. Mỗi tháng trả bao nhiêu?`;
+      q('Mỗi tháng trả (triệu)', F.PMT(rn / 12, n * 12, G, 0, t), `=PMT(${fp(rn)}/12,${n}*12,${G},0,${t})`);
+      B.kl = `Số tiền vay là Pv (dương), kết quả âm vì là tiền trả ra. Trả ${tenKy(t)} tháng → Type = ${t}.`;
+    } else {
+      const X = ri(5, 40) * 10, N = ri(5, 18);
+      B.de = `${ai} muốn sau ${N} năm có ${so(X)} triệu cho con đi học. Lãi suất ${pc(rn)}/năm. ${t ? 'Đầu' : 'Cuối'} mỗi tháng phải gửi bao nhiêu?`;
+      q('Mỗi tháng gửi (triệu)', F.PMT(rn / 12, N * 12, 0, X, t), `=PMT(${fp(rn)}/12,${N}*12,0,${X},${t})`);
+      B.kl = 'Số tiền muốn có trong tương lai là Fv, Pv = 0.';
+    }
+  } else if (dang === 'NPER') {
+    const t = dauCuoi(), rn = ri(60, 150) / 1000, G = ri(10, 60) * 1000000, m = Math.ceil(G * (rn / 12) * (1.3 + r() * 1.5) / 50000) * 50000;
+    B.de = `${ai} vay ${so(G, 0)}đ, lãi ${pc(rn)}/năm. ${t ? 'Đầu' : 'Cuối'} mỗi tháng trả ${so(m, 0)}đ. Bao nhiêu tháng thì trả hết?`;
+    q('Số tháng', F.NPER(rn / 12, -m, G, 0, t), `=NPER(${fp(rn)}/12,-${m},${G},0,${t})`);
+    B.kl = 'Pmt và Pv phải ngược dấu. Kết quả lẻ thì làm tròn lên số tháng.';
+  } else if (dang === 'RATE') {
+    const n = ri(2, 5), G = ri(20, 120) * 100, m = Math.round(-F.PMT(ri(6, 18) / 1200, n * 12, G) / 5) * 5;
+    B.de = `${ai} mua xe trả góp giá ${so(G)}$ trong ${n} năm, mỗi tháng trả ${so(m)}$ (cuối tháng). Lãi suất theo tháng là bao nhiêu?`;
+    const v = F.RATE(n * 12, -m, G);
+    q('Lãi suất tháng (%)', v * 100, `=RATE(${n}*12,-${m},${G})`, true);
+    q('Lãi suất năm tương ứng (%)', v * 1200, `=RATE(${n}*12,-${m},${G})*12`, true);
+    B.kl = 'RATE trả về lãi theo kỳ (tháng). Nhân 12 để ra lãi năm.';
+  } else if (dang === 'NPV') {
+    const V = ri(8, 20) * 10000, rr = ri(50, 90) / 1000, c = Array.from({ length: 5 }, (_, i) => ri(5, 50) * 1000 + i * ri(3, 9) * 1000);
+    const dau = r() < 0.5;
+    B.de = `${ct} có ${so(V)}$ muốn đầu tư vào dự án dự kiến 5 năm thu về ${c.map(x => so(x)).join(', ')}. Tỷ lệ chiết khấu ${pc(rr)}/năm. Tiền đầu tư bỏ ra vào ${dau ? 'ĐẦU' : 'CUỐI'} chu kỳ đầu. Có nên đầu tư không?`;
+    const v = dau ? F.NPV(rr, c) - V : F.NPV(rr, -V, ...c);
+    q('NPV của dự án', v, dau ? `=NPV(${fp(rr)},${c.join(',')})-${V}` : `=NPV(${fp(rr)},-${V},${c.join(',')})`);
+    B.kl = (dau ? 'Đầu tư đầu chu kỳ đầu: vốn KHÔNG đưa vào hàm, trừ ra ngoài. ' : 'Đầu tư cuối chu kỳ đầu: vốn (âm) nằm trong hàm. ') + `NPV ${v > 0 ? '> 0 nên nên đầu tư' : '< 0 nên không nên đầu tư'}.`;
+  } else if (dang === 'IRR') {
+    const V = ri(10, 25) * 10000, n = ri(5, 6), c = Array.from({ length: n }, (_, i) => Math.round(V * (ri(6, 18) / 100 + i * ri(4, 9) / 100) / 100) * 100), rv = ri(60, 140) / 1000;
+    const v = F.IRR([-V, ...c]);
+    B.de = `${ct} vay ${so(V)}$ với lãi suất ${pc(rv)}/năm để đầu tư dự án, dự kiến ${n} năm thu về lần lượt ${c.map(x => so(x)).join(', ')}. Có nên vay không? Lãi, lỗ bao nhiêu (tính theo lãi vay)?`;
+    q('IRR (%)', v * 100, `=IRR({-${V},${c.join(',')}})`, true);
+    q('NPV theo lãi vay', F.NPV(rv, -V, ...c), `=NPV(${fp(rv)},-${V},${c.join(',')})`);
+    B.kl = `IRR ${v > rv ? '>' : '<'} lãi vay ${pc(rv)} nên ${v > rv ? 'nên vay' : 'không nên vay'}. NPV đặt vốn âm trong hàm như ví dụ anh Nam trong tài liệu.`;
+  } else if (dang === 'SLN') {
+    const C = ri(10, 80) * 1000, n = ri(4, 12), S = Math.round(C * (ri(5, 25) / 100) / 100) * 100, may = pick(MAY);
+    B.de = `${ct} mua ${may} giá ${so(C)}$, dùng ${n} năm rồi bán được ${so(S)}$. Tính khấu hao đều mỗi năm và mỗi tháng.`;
+    q('Khấu hao mỗi năm', F.SLN(C, S, n), `=SLN(${C},${S},${n})`);
+    q('Khấu hao mỗi tháng', F.SLN(C, S, n * 12), `=SLN(${C},${S},${n}*12)`);
+    B.kl = 'Life tính theo tháng thì kết quả là khấu hao tháng.';
+  } else if (dang === 'SYD') {
+    const C = ri(10, 80) * 1000, n = ri(4, 10), S = Math.round(C * (ri(5, 25) / 100) / 100) * 100, k = ri(2, n), may = pick(MAY);
+    B.de = `${ct} mua ${may} giá ${so(C)}$, sau ${n} năm bán được ${so(S)}$. Dùng phương pháp tổng các năm (SYD), tính khấu hao năm thứ nhất, năm thứ ${k} và tháng đầu tiên.`;
+    q('Năm thứ nhất', F.SYD(C, S, n, 1), `=SYD(${C},${S},${n},1)`);
+    q('Năm thứ ' + k, F.SYD(C, S, n, k), `=SYD(${C},${S},${n},${k})`);
+    q('Tháng đầu tiên', F.SYD(C, S, n * 12, 1), `=SYD(${C},${S},${n}*12,1)`);
+    B.kl = 'Life và Per phải cùng đơn vị (năm với năm, tháng với tháng).';
+  } else if (dang === 'DB') {
+    const C = ri(10, 80) * 1000, n = ri(5, 10), S = Math.round(C * (ri(5, 20) / 100) / 100) * 100, th = ri(2, 11), M = 12 - th + 1, k = ri(2, n), nam = ri(2015, 2024), may = pick(MAY);
+    B.de = `Đầu tháng ${th} năm ${nam}, ${ct} mua ${may} giá ${so(C)}$, dùng ${n} năm, giá trị còn lại ${so(S)}$. Khấu hao theo tỷ lệ cố định (DB). Tính khấu hao năm đầu tiên và năm thứ ${k}.`;
+    q('Năm đầu tiên', F.DB(C, S, n, 1, M), `=DB(${C},${S},${n},1,${M})`);
+    q('Năm thứ ' + k, F.DB(C, S, n, k, M), `=DB(${C},${S},${n},${k},${M})`);
+    B.kl = `Mua đầu tháng ${th} nên năm đầu dùng ${M} tháng → Month = ${M}.`;
+  } else if (dang === 'DDB') {
+    const C = ri(5, 60) * 1000, n = ri(3, 8), S = Math.round(C * (ri(5, 20) / 100) / 50) * 50, f = pick([2, 2, 1.5, 1.2]), kt = ri(2, 12), kn = ri(2, n), may = pick(MAY);
+    const fT = f === 2 ? '' : `,${f}`;
+    B.de = `${ai} mua ${may} giá ${so(C)}$, dùng ${n} năm, bán lại được ${so(S)}$. Tính khấu hao ngày đầu tiên, tháng thứ ${kt} và năm thứ ${kn} theo phương pháp giảm dần ${f === 2 ? 'kép' : 'tỷ lệ ' + so(f * 100) + '%'}.`;
+    q('Ngày đầu tiên', F.DDB(C, S, n * 365, 1, f), `=DDB(${C},${S},${n}*365,1${fT})`);
+    q('Tháng thứ ' + kt, F.DDB(C, S, n * 12, kt, f), `=DDB(${C},${S},${n}*12,${kt}${fT})`);
+    q('Năm thứ ' + kn, F.DDB(C, S, n, kn, f), `=DDB(${C},${S},${n},${kn}${fT})`);
+    B.kl = f === 2 ? 'Factor mặc định 2 (200%) nên có thể bỏ qua.' : `Factor = ${so(f * 100)}% = ${f}.`;
+  } else if (dang === 'VDB') {
+    const C = ri(5, 60) * 100, n = ri(5, 10), S = Math.round(C * (ri(3, 15) / 100) / 10) * 10, a = ri(1, 12), b = a + ri(6, 24), may = pick(MAY);
+    B.de = `${ct} mua ${may} giá ${so(C)}$, sau ${n} năm bán được ${so(S)}$. Theo phương pháp kết toán kép, tính khấu hao tháng đầu tiên và khoảng từ cuối tháng thứ ${a} đến cuối tháng thứ ${b}.`;
+    q('Tháng đầu tiên', F.VDB(C, S, n * 12, 0, 1), `=VDB(${C},${S},${n}*12,0,1)`);
+    q(`Từ tháng ${a} đến tháng ${b}`, F.VDB(C, S, n * 12, a, b), `=VDB(${C},${S},${n}*12,${a},${b})`);
+    B.kl = 'Kỳ thứ i thì Start = i − 1, End = i. Life tính theo tháng vì đề hỏi theo tháng.';
+  } else if (dang === 'PA') {
+    const G = ri(8, 30) * 10, rn = ri(60, 120) / 1000;
+    const a1 = Math.round(G * (1 + rn + (r() - 0.5) * 0.04)), a2 = Math.round(-F.PMT(rn, 3, G) * (0.97 + r() * 0.06) * 10) / 10, a3 = Math.round(G * Math.pow(1 + rn, 4) * (0.97 + r() * 0.06) * 10) / 10, a4 = Math.round(-F.PMT(rn, 4, G) * (0.95 + r() * 0.08) * 10) / 10;
+    B.de = `${ct} cần mua một TSCĐ giá hiện tại ${so(G)} triệu, lãi suất ngân hàng ${pc(rn)}/năm. Các phương thức thanh toán: (1) trả chậm sau 1 năm ${so(a1)} triệu; (2) cuối mỗi năm trả ${so(a2)} triệu trong 3 năm; (3) sau 4 năm trả ${so(a3)} triệu; (4) cuối mỗi năm trả ${so(a4)} triệu trong 4 năm; (5) trả ngay ${so(G)} triệu. Nên chọn phương án nào?`;
+    const pv = [-F.PV(rn, 1, 0, a1), -F.PV(rn, 3, a2), -F.PV(rn, 4, 0, a3), -F.PV(rn, 4, a4), G];
+    q('PV phương án 1', pv[0], `=PV(${fp(rn)},1,0,-${a1})`);
+    q('PV phương án 2', pv[1], `=PV(${fp(rn)},3,-${a2})`);
+    q('PV phương án 3', pv[2], `=PV(${fp(rn)},4,0,-${a3})`);
+    q('PV phương án 4', pv[3], `=PV(${fp(rn)},4,-${a4})`);
+    const best = pv.indexOf(Math.min(...pv)) + 1;
+    q('Nên chọn phương án số', best, 'Chọn phương án có giá trị hiện tại nhỏ nhất');
+    B.kl = `Quy hết về hiện tại rồi so sánh. Phương án ${best} rẻ nhất (≈ ${so(Math.min(...pv))} triệu). Ghi Pmt/Fv âm để PV ra số dương cho dễ so.`;
+  } else if (dang === 'NPV3') {
+    const V = ri(8, 16) * 10000, tenDA = ['mở rộng sản xuất', 'nuôi tôm', 'xây khách sạn'];
+    const da = tenDA.map(() => ({ rr: ri(55, 80) / 1000, c: Array.from({ length: 5 }, (_, i) => Math.round(V * (ri(5, 18) / 100 + i * ri(4, 11) / 100) / 100) * 100) }));
+    B.de = `${ct} có ${so(V)}$ muốn đầu tư vào một trong ba dự án (đầu tư vào cuối chu kỳ đầu). ` + da.map((x, i) => `Dự án ${tenDA[i]} 5 năm thu về ${x.c.map(c => so(c)).join(', ')}, chiết khấu ${pc(x.rr)}/năm.`).join(' ') + ' Nên đầu tư dự án nào?';
+    const v = da.map(x => F.NPV(x.rr, -V, ...x.c));
+    da.forEach((x, i) => q('NPV dự án ' + tenDA[i], v[i], `=NPV(${fp(x.rr)},-${V},${x.c.join(',')})`));
+    const m = Math.max(...v);
+    B.kl = m > 0 ? `Chọn dự án ${tenDA[v.indexOf(m)]} vì NPV dương và lớn nhất.` : 'Cả ba dự án NPV âm nên không nên đầu tư dự án nào.';
+  } else if (dang === 'NPV2') {
+    const V = ri(5, 15) * 10000, rr = ri(55, 85) / 1000, c = Array.from({ length: 5 }, (_, i) => ri(2, 10) * 1000 + i * ri(8, 20) * 1000);
+    B.de = `${ai} có ${so(V)}$ muốn đầu tư vào một dự án, 5 năm đầu dự kiến thu về ${c.map(x => so(x)).join(', ')}. Tỷ lệ chiết khấu ${pc(rr)}/năm. Có nên đầu tư không? Xét cả hai trường hợp đầu tư vào cuối chu kỳ đầu và đầu chu kỳ đầu.`;
+    const v1 = F.NPV(rr, -V, ...c), v2 = F.NPV(rr, c) - V;
+    q('NPV – đầu tư cuối chu kỳ đầu', v1, `=NPV(${fp(rr)},-${V},${c.join(',')})`);
+    q('NPV – đầu tư đầu chu kỳ đầu', v2, `=NPV(${fp(rr)},${c.join(',')})-${V}`);
+    B.kl = `Cuối chu kỳ đầu: vốn nằm trong hàm. Đầu chu kỳ đầu: vốn trừ ở ngoài. ${v1 > 0 && v2 > 0 ? 'Cả hai NPV > 0 nên có thể đầu tư.' : v1 < 0 && v2 < 0 ? 'Cả hai NPV < 0 nên không nên đầu tư.' : 'Kết luận khác nhau giữa hai trường hợp, phải xem tiền bỏ ra lúc nào.'}`;
+  } else if (dang === 'FVS5') {
+    const ls = Array.from({ length: 5 }, () => ri(25, 70) / 1000), von = Array.from({ length: 5 }, () => ri(5, 20)), nam = ri(2015, 2021);
+    B.de = `Có 5 phương án đầu tư a–e với vốn lần lượt ${von.join(', ')} triệu; lãi suất các năm ${nam}–${nam + 4}: ${ls.map(pc).join('; ')}. Tính tiền thu được khi kết thúc kỳ hạn của mỗi phương án.`;
+    'abcde'.split('').forEach((k, i) => q('Phương án ' + k, F.FVSCHEDULE(von[i], ls), `=FVSCHEDULE(${von[i]},{${ls.map(fp).join(',')}})`));
+    B.kl = 'Trong Excel: gõ dãy lãi suất vào một hàng, công thức =FVSCHEDULE(B2,$C$1:$G$1) rồi kéo xuống (khóa vùng lãi suất).';
+  } else if (dang === 'MAY') {
+    const gia = ri(30, 90) * 10, vc = ri(1, 5), ld = ri(3, 12), nam = ri(2010, 2016), n = ri(8, 12), bh = Math.round(gia * (ri(25, 50) / 100)), k = ri(3, n * 2 - 2), lq = ri(15, 35) / 1000;
+    const NG = gia + vc + ld;
+    B.de = `${ct} mua máy móc thiết bị phục vụ sản xuất bằng quỹ đầu tư phát triển năm ${nam}, giá chưa thuế ${so(gia)} triệu, thuế GTGT 10%, chi phí vận chuyển ${vc} triệu, lắp đặt ${ld} triệu. Năm ${nam + n} thải hồi với giá ${so(bh)} triệu. (a) Tính khấu hao kỳ ${k} theo phương pháp tổng các năm, biết 1 năm khấu hao 2 lần. (b) Nếu không mua máy mà gửi ngân hàng ${pc(lq)}/quý thì sau ${n} năm nhận bao nhiêu?`;
+    q('Nguyên giá (triệu)', NG, `= ${gia} + ${vc} + ${ld} (VAT được khấu trừ, không cộng)`);
+    q('Khấu hao kỳ ' + k, F.SYD(NG, bh, n * 2, k), `=SYD(${NG},${bh},${n}*2,${k})`);
+    q('Tiền nhận sau ' + n + ' năm', F.FV(lq, n * 4, 0, -NG), `=FV(${fp(lq)},${n}*4,0,-${NG})`);
+    B.kl = `Khấu hao 2 lần/năm nên Life = ${n} × 2. Gửi theo quý nên số kỳ = ${n} × 4. Giống Bài 1 file Word.`;
+  } else if (dang === 'TRAGOP') {
+    const G = ri(15, 45) * 1000000, rn = ri(50, 120) / 1000, n = ri(2, 5), m = Math.round(-F.PMT(rn / 12, n * 12, G) * (0.9 + r() * 0.2) / 10000) * 10000;
+    const p = -F.PMT(rn / 12, n * 12, G);
+    B.de = `Cửa hàng bán xe máy trả góp: giá ${so(G, 0)}đ, lãi ${pc(rn)}/năm, trả trong ${n} năm. Mỗi tháng phải nộp bao nhiêu? Nếu một người bán cho bạn chiếc xe đó với yêu cầu nộp ${so(m, 0)}đ/tháng trong ${n} năm thì mua bên nào?`;
+    q('Mỗi tháng nộp cho cửa hàng (đ)', p, `=PMT(${fp(rn)}/12,${n}*12,-${G})`);
+    B.kl = `${so(p, 0)}đ ${p < m ? '<' : '>'} ${so(m, 0)}đ nên mua của ${p < m ? 'cửa hàng' : 'người bán kia'}. Giống Bài 2 file Word.`;
+  } else if (dang === 'THUE') {
+    const C = ri(15, 40) * 1000, n = ri(4, 7), tien = Math.round(C / n * (1.05 + r() * 0.25) / 100) * 100, rr = ri(60, 100) / 1000;
+    const pvThue = -F.PV(rr, n, tien, 0, 1);
+    B.de = `Trường đại học cần trang bị phòng máy: (1) mua mới giá ${so(C)}$; (2) thuê ${n} năm, mỗi năm trả ${so(tien)}$, đợt 1 trả ngay khi ký hợp đồng, lãi ${pc(rr)}/năm. Tính giá trị hiện tại của phương án thuê; nên thuê hay mua? IRR của phương án mua là bao nhiêu?`;
+    q('Giá trị hiện tại tiền thuê ($)', pvThue, `=PV(${fp(rr)},${n},-${tien},0,1)`);
+    const dong = [-C + tien, ...Array(n - 1).fill(tien)];
+    q('IRR phương án mua (%)', F.IRR(dong) * 100, `=IRR({${dong.join(',')}})`, true);
+    B.kl = `Trả ngay khi ký nên Type = 1. Thuê tốn ≈ ${so(pvThue)}$ so với mua ${so(C)}$ → ${pvThue > C ? 'nên mua' : 'nên thuê'}. IRR: mua thì tiết kiệm tiền thuê đầu mỗi năm (năm 0 là −${so(C)} + ${so(tien)}). Giống Bài 3 file Word.`;
+  } else if (dang === 'VAY') {
+    const G = ri(10, 50) * 1000000, rn = ri(80, 180) / 1000, m = Math.ceil(G * rn / 12 * (1.5 + r()) / 100000) * 100000;
+    B.de = `${ai} vay ngân hàng ${so(G, 0)}đ, lãi ${pc(rn)}/năm. (a) Muốn trả hết trong 1 năm thì mỗi tháng trả bao nhiêu? (b) Nếu chỉ trả được ${so(m, 0)}đ/tháng thì bao nhiêu năm mới trả hết?`;
+    q('Mỗi tháng trả (đ)', -F.PMT(rn / 12, 12, G), `=PMT(${fp(rn)}/12,12,${G})`);
+    const t = F.NPER(rn / 12, -m, G);
+    q('Số tháng phải trả', t, `=NPER(${fp(rn)}/12,-${m},${G})`);
+    q('Đổi ra năm', t / 12, `=NPER(${fp(rn)}/12,-${m},${G})/12`);
+    B.kl = 'Giống Bài 4 file Word. Ô (a) Excel trả số âm, ở đây ghi số dương cho dễ đọc.';
+  } else if (dang === 'VAYCK') {
+    const G = ri(40, 120) * 1000000, rn = ri(100, 180) / 1000, n = ri(2, 4), y = ri(2025, 2027), d1 = [y, ri(1, 12), 1], d2 = [y + ri(1, 2), ri(1, 12), ri(5, 28)], lr = ri(60, 120) / 1000;
+    const s = d => `${d[0]}-${String(d[1]).padStart(2, '0')}-${String(d[2]).padStart(2, '0')}`;
+    B.de = `${ai} vay ${so(G, 0)}đ trong ${n} năm, lãi ${pc(rn)}/năm, trả hằng tháng. Mỗi tháng trả cả gốc và lãi bao nhiêu? Số tiền vay được dùng mua chứng khoán phát hành ngày ${d1[2]}/${d1[1]}/${d1[0]}, tới hạn ${d2[2]}/${d2[1]}/${d2[0]}, lãi ${pc(lr)}, mệnh giá 1000$, cơ sở ngày/365. Tính lãi dồn.`;
+    q('Mỗi tháng trả (đ)', -F.PMT(rn / 12, n * 12, G), `=PMT(${fp(rn)}/12,${n}*12,${G})`);
+    q('Lãi dồn ($)', F.ACCRINTM(s(d1), s(d2), lr, 1000, 3), `=ACCRINTM(DATE(${d1.join(',')}),DATE(${d2.join(',')}),${fp(lr)},1000,3)`);
+    B.kl = 'Giống Bài 5 file Word.';
+  } else if (dang === 'SYDB') {
+    const C = ri(10, 50) * 1000, n = ri(5, 10), S = Math.round(C * (ri(10, 30) / 100) / 100) * 100;
+    B.de = `${ct} bỏ ra ${so(C)}$ mua xe tải, dùng ${n} năm rồi bán được ${so(S)}$. Dùng hàm SYD tính khấu hao từng năm.`;
+    for (let k = 1; k <= n; k++) q('Năm ' + k, F.SYD(C, S, n, k), `=SYD(${C},${S},${n},${k})`);
+    B.kl = `Mỗi năm giảm đều ${so(F.SYD(C, S, n, 1) - F.SYD(C, S, n, 2))}$; cộng ${n} năm đúng bằng ${so(C - S)}$ = nguyên giá − giá trị còn lại. Giống Bài tập 12.`;
+  } else if (dang === 'DBM') {
+    const C = ri(5, 30) * 100000, n = ri(4, 8), S = Math.round(C * (ri(5, 15) / 100) / 10000) * 10000, th = ri(2, 10), M = 12 - th, nam = ri(2004, 2020);
+    B.de = `Cuối tháng ${th} năm ${nam}, ${ai} mua một máy hàn giá ${so(C, 0)}đ, dùng ${n} năm, bán lại được ${so(S, 0)}đ. Tính khấu hao các năm sử dụng (tỷ lệ khấu hao cố định).`;
+    for (let k = 1; k <= n + 1; k++) q(`Năm ${k}${k === 1 ? ' (' + M + ' tháng)' : k === n + 1 ? ' (' + (12 - M) + ' tháng cuối)' : ''}`, F.DB(C, S, n, k, M), `=DB(${C},${S},${n},${k},${M})`);
+    B.kl = `Mua CUỐI tháng ${th} nên năm đầu chỉ dùng ${M} tháng (Month = ${M}) và có thêm kỳ thứ ${n + 1}. Giống Bài tập 13.`;
+  } else if (dang === 'VDBN') {
+    const C = ri(10, 40) * 100, S = Math.round(C * ri(5, 15) / 100 / 10) * 10, y = ri(2005, 2020);
+    const ngay0 = Date.UTC(y, ri(0, 5), ri(1, 28)), life = ri(500, 1100), a = ri(30, 150), b = a + ri(200, Math.max(250, life - a - 50));
+    const D = t => { const x = new Date(t); return [x.getUTCFullYear(), x.getUTCMonth() + 1, x.getUTCDate()]; };
+    const dMua = D(ngay0), dBan = D(ngay0 + life * 864e5), dA = D(ngay0 + a * 864e5), dB = D(ngay0 + Math.min(b, life - 1) * 864e5);
+    const bb = Math.min(b, life - 1), h = d => `${d[2]}/${d[1]}/${d[0]}`, DT = d => `DATE(${d.join(',')})`;
+    B.de = `Ngày ${h(dMua)} ${ct} mua một máy in giá ${so(C)}$. Ngày ${h(dBan)} bán lại được ${so(S)}$. Tính khấu hao từ ngày ${h(dA)} đến ngày ${h(dB)} theo phương pháp kết toán kép.`;
+    q('Khấu hao trong khoảng ($)', F.VDB(C, S, life, a, bb), `=VDB(${C},${S},${DT(dBan)}-${DT(dMua)},${DT(dA)}-${DT(dMua)},${DT(dB)}-${DT(dMua)})\n= VDB(${C},${S},${life},${a},${bb})`);
+    B.kl = 'Tính theo ngày: Life = số ngày từ lúc mua đến lúc bán; Start, End = số ngày tính từ ngày mua. Giống Bài tập 15.';
+  } else if (dang === 'CK') {
+    const y = ri(2024, 2027), ngay = (yy, mm, dd) => `${yy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+    const d1 = [y, ri(1, 6), ri(1, 28)], d2 = [y + ri(0, 1), ri(7, 12), ri(1, 28)];
+    const s1 = ngay(...d1), s2 = ngay(...d2), hien = d => `${d[2]}/${d[1]}/${d[0]}`, DT = d => `DATE(${d[0]},${d[1]},${d[2]})`;
+    const basis = pick([2, 3]), bT = basis === 2 ? 'ngày/360' : 'ngày/365';
+    const loai = pick(['ACCRINTM', 'INTRATE', 'RECEIVED', 'DISC', 'PRICEMAT']);
+    B.ten = 'Chứng khoán – ' + loai;
+    if (loai === 'ACCRINTM') {
+      const lr = ri(50, 120) / 1000, par = pick([1000, 1000, 5000]);
+      B.de = `${ct} phát hành chứng khoán ngày ${hien(d1)}, tới hạn ${hien(d2)}, lãi suất ${pc(lr)}, mệnh giá ${so(par)}$, cơ sở ${bT}. Tính lãi dồn.`;
+      q('Lãi dồn ($)', F.ACCRINTM(s1, s2, lr, par, basis), `=ACCRINTM(${DT(d1)},${DT(d2)},${fp(lr)},${par},${basis})`);
+    } else if (loai === 'INTRATE') {
+      const inv = ri(5, 20) * 100000, red = Math.round(inv * (1 + ri(10, 60) / 1000));
+      B.de = `Ngày ${hien(d1)} mua chứng khoán với giá ${so(inv, 0)}$, tới hạn ${hien(d2)} nhận về ${so(red, 0)}$, cơ sở ${bT}. Tính lãi suất của khoản đầu tư.`;
+      q('Lãi suất (%)', F.INTRATE(s1, s2, inv, red, basis) * 100, `=INTRATE(${DT(d1)},${DT(d2)},${inv},${red},${basis})`, true);
+    } else if (loai === 'RECEIVED') {
+      const inv = ri(5, 20) * 100000, ds = ri(30, 90) / 1000;
+      B.de = `Chứng khoán giao dịch ngày ${hien(d1)}, tới hạn ${hien(d2)}, giá trị đầu tư ${so(inv, 0)}$, tỷ suất chiết khấu ${pc(ds)}, cơ sở ${bT}. Tính số tiền thu được khi tới hạn.`;
+      q('Số tiền thu được ($)', F.RECEIVED(s1, s2, inv, ds, basis), `=RECEIVED(${DT(d1)},${DT(d2)},${inv},${fp(ds)},${basis})`);
+    } else if (loai === 'DISC') {
+      const pr = ri(9600, 9950) / 100;
+      B.de = `Chứng khoán giao dịch ngày ${hien(d1)}, tới hạn ${hien(d2)}, giá trên mệnh giá 100$ là ${so(pr)}, giá trị hoàn trả 100, cơ sở ${bT}. Tính tỷ suất chiết khấu.`;
+      q('Tỷ suất chiết khấu (%)', F.DISC(s1, s2, pr, 100, basis) * 100, `=DISC(${DT(d1)},${DT(d2)},${pr},100,${basis})`, true);
+    } else {
+      const d0 = [d1[0] - 1, ri(1, 12), ri(1, 28)], s0 = ngay(...d0), lr = ri(40, 90) / 1000;
+      B.de = `Chứng khoán phát hành ngày ${hien(d0)}, giao dịch ngày ${hien(d1)}, tới hạn ${hien(d2)}, lãi suất phát hành ${pc(lr)}, cơ sở ${bT}. Tính giá trên mỗi mệnh giá 100$ (đề không cho Yld thì Yld = lãi suất).`;
+      q('Giá trên mệnh giá 100$', F.PRICEMAT(s1, s2, s0, lr, lr, basis), `=PRICEMAT(${DT(d1)},${DT(d2)},${DT(d0)},${fp(lr)},${fp(lr)},${basis})`);
+    }
+    B.kl = `Gõ ngày bằng hàm DATE(năm,tháng,ngày) để tránh máy hiểu nhầm. Cơ sở ${bT} → Basis = ${basis}.`;
+  }
+  return B;
+}
+function sinhDeHTC(seed) {
+  const r = rng(seed);
+  return HTC_NHOM.map((nhom, i) => sinhBai(nhom[Math.floor(r() * nhom.length)], seed * 10 + i + 1));
+}
+
+let HTC = { ma: '', bai: [] };
+function moDeHTC(ma) {
+  ma = String(ma || '').trim().toUpperCase();
+  let m = ma.match(/^H(\d{1,6})$/);
+  if (m) { HTC = { ma, bai: sinhDeHTC(+m[1]) }; }
+  else if ((m = ma.match(/^([A-Z]+)-(\d{1,6})$/)) && HTC_DANG[m[1]]) {
+    const s = +m[2]; HTC = { ma, bai: [0, 1, 2].map(k => sinhBai(m[1], s * 10 + k)) };
+  } else return false;
+  store.set('htcMa', ma);
+  renderHTC();
+  return true;
+}
+function renderHTC() {
+  $('#htcMaHien').textContent = HTC.ma;
+  $('#htcBai').innerHTML = HTC.bai.map((b, i) => `<div class="card htc" id="hc${i}">
+    <span class="src">Bài ${i + 1} · ${esc(b.ten)}</span><p>${esc(b.de)}</p>
+    <div class="dapan" hidden>
+      <div class="tbl"><table class="kv"><tbody>${b.qs.map(q => `<tr><td>${esc(q.l)}<span class="fx">${esc(q.f)}</span></td><td class="n"><b>${fmt(q.v)}${q.pct ? '%' : ''}</b></td></tr>`).join('')}</tbody></table></div>
+      ${b.kl ? `<p class="kl">${esc(b.kl)}</p>` : ''}
+    </div>
+    <div class="acts"><button class="btn" data-hs="${i}" type="button">Xem đáp án</button></div></div>`).join('');
+  document.querySelectorAll('[data-hs]').forEach(b => b.onclick = () => {
+    const d = document.querySelector(`#hc${b.dataset.hs} .dapan`); d.hidden = !d.hidden; b.textContent = d.hidden ? 'Xem đáp án' : 'Ẩn đáp án';
+  });
+  $('#htcTatCa').textContent = 'Hiện tất cả đáp án';
+}
+function ganHTC() {
+  $('#htcLoai').innerHTML = '<option value="">Đề tổng hợp 5 bài (trộn các dạng)</option>' + Object.entries(HTC_DANG).map(([k, t]) => `<option value="${k}">Chỉ luyện: ${esc(t)}</option>`).join('');
+  const moi = () => {
+    const s = Math.floor(Math.random() * 90000) + 10000, k = $('#htcLoai').value;
+    moDeHTC(k ? `${k}-${s}` : 'H' + s);
+  };
+  $('#htcMoi').onclick = () => { moi(); toast('Đề mới mã ' + HTC.ma); };
+  $('#htcLoai').onchange = moi;
+  $('#htcTatCa').onclick = () => {
+    const hien = $('#htcTatCa').textContent.startsWith('Hiện');
+    document.querySelectorAll('#htcBai .dapan').forEach(d => d.hidden = !hien);
+    document.querySelectorAll('[data-hs]').forEach(b => b.textContent = hien ? 'Ẩn đáp án' : 'Xem đáp án');
+    $('#htcTatCa').textContent = hien ? 'Ẩn tất cả đáp án' : 'Hiện tất cả đáp án';
+  };
+  $('#htcForm').addEventListener('submit', e => { e.preventDefault(); if (moDeHTC($('#htcOMa').value)) { toast('Đã mở đề ' + HTC.ma); $('#htcOMa').value = ''; } else toast('Mã đề dạng H12345 hoặc NPV-12345.'); });
+  if (!moDeHTC(store.get('htcMa', ''))) moi();
+}
+
+/* ===== Thẻ ghi nhớ ===== */
+const THE = [
+  // Bảng lương
+  ['Bảng lương', 'Công thức lương thời gian?', '(Hệ số lương + Hệ số phụ cấp) × Lương tối thiểu ÷ Số ngày công chuẩn × Số công thực tế.\nVD Quốc An: =(D8+E8)*2418/22*I8'],
+  ['Bảng lương', 'Lương nghỉ việc hưởng BHXH tính thế nào?', 'Giống lương thời gian nhưng nhân với số công nghỉ.\nSố công nghỉ = công chuẩn − công đi làm (=22-I8 hoặc =26-I8).'],
+  ['Bảng lương', 'Ngày công chuẩn của từng đề?', 'Nhất Linh: chỉ nghỉ Chủ nhật → 26 công.\nQuốc An, Hoàng Anh: nghỉ Thứ 7 và Chủ nhật → 22 công.'],
+  ['Bảng lương', 'Lương tối thiểu của từng đề (nghìn đồng)?', 'Nhất Linh 2.700 · Quốc An 2.418 · Hoàng Anh 2.812.'],
+  ['Bảng lương', 'Lương sản phẩm và lương của tổ trưởng bán hàng?', 'Lương SP = Số SP × Đơn giá.\nTổ trưởng: 0,1% × tổng doanh thu của các nhân viên bán hàng (600.000 × 0,1% = 600).'],
+  ['Bảng lương', 'Cột “Tổng số” gồm những gì?', 'Lương sản phẩm + Lương thời gian + Lương nghỉ hưởng BHXH.'],
+  ['Bảng lương', 'Các khoản khấu trừ vào lương người lao động?', 'BHXH 8% + BHYT 1,5% + BHTN 1% = 10,5% × LƯƠNG THỜI GIAN (không phải tổng số).'],
+  ['Bảng lương', 'Kỳ II được lĩnh?', '= Tổng số − Tạm ứng kỳ I − Các khoản khấu trừ.'],
+  // Phân bổ lương
+  ['Phân bổ lương', 'Cột “Lương” của từng bộ phận ở bảng phân bổ?', '= Tổng số − Lương nghỉ của bộ phận đó (lương nghỉ chuyển sang dòng 3383).'],
+  ['Phân bổ lương', 'Dòng 3383 và 3531 ghi gì?', '3383: cột BHXH = tổng lương nghỉ hưởng BHXH.\n3531: cột Thưởng = quỹ khen thưởng (Nhất Linh 12.200 · Quốc An 38.500 · Hoàng Anh 55.500).'],
+  ['Phân bổ lương', 'Doanh nghiệp trích vào chi phí (cột TK 338)?', 'KPCĐ 2% + BHXH 17,5% + BHYT 3% + BHTN 1% = 23,5% × lương thời gian của bộ phận.'],
+  ['Phân bổ lương', 'Dòng TK 334 trên bảng phân bổ ghi gì?', 'Chuyển 3 khoản đã trừ lương (8%, 1,5%, 1%) từ bảng thanh toán lương sang các cột BHXH, BHYT, BHTN của TK 338.'],
+  ['Phân bổ lương', 'Tổng tỷ lệ trích theo lương?', '34%: doanh nghiệp 23,5% + người lao động 10,5%.\nBHXH 25,5% · BHYT 4,5% · BHTN 2% · KPCĐ 2%.'],
+  ['Phân bổ lương', 'Bộ phận nào ghi Nợ tài khoản nào?', 'Công nhân trực tiếp → 622 · Quản lý phân xưởng → 627 · Bán hàng → 641 · Quản lý doanh nghiệp → 642.'],
+  ['Phân bổ lương', 'Thứ tự dòng bảng phân bổ trong đề Quốc An?', '642, 627, 334, 641, 353, 338, 622 — khác bài Nhất Linh. Trỏ công thức theo tên TK, đừng chép theo thứ tự cũ.'],
+  // Vật liệu, khấu hao
+  ['Vật liệu, khấu hao', 'Đơn giá bình quân cả kỳ dự trữ?', '(Giá trị tồn đầu + Giá trị nhập) ÷ (SL tồn đầu + SL nhập).\n=(L11+H15)/(K11+G15) — nhớ đủ ngoặc.'],
+  ['Vật liệu, khấu hao', 'Giá trị nhập kho khi có chi phí vận chuyển?', 'SL × giá mua chưa thuế + chi phí vận chuyển. Thuế GTGT ghi riêng vào 133.'],
+  ['Vật liệu, khấu hao', 'Cột “Tổng” của bảng phân bổ NVL?', 'Chỉ cộng các cột Thành tiền. =SUM(D10:I10) sẽ cộng lẫn số kg vào tiền.'],
+  ['Vật liệu, khấu hao', 'Số khấu hao TĂNG trong tháng?', 'Nguyên giá ÷ Số năm ÷ 12 ÷ Số ngày của tháng × (Số ngày của tháng − Ngày mua + 1).\nVD: =288000/12/12/31*(31-6+1) = 1.677,42'],
+  ['Vật liệu, khấu hao', 'Số khấu hao GIẢM trong tháng?', 'Cùng công thức, nhân số ngày không sử dụng tính từ ngày thanh lý.\nVD: =180000/10/12/31*(31-20+1) = 580,65'],
+  ['Vật liệu, khấu hao', 'Số khấu hao phải trích tháng này?', 'KH tháng trước + KH tăng − KH giảm (tính riêng cho 627, 641, 642).'],
+  ['Vật liệu, khấu hao', 'Tháng 6 và tháng 8 có bao nhiêu ngày?', 'Tháng 6: 30 ngày (đề Quốc An). Tháng 8: 31 ngày (đề Nhất Linh).'],
+  // Giá thành, kết quả
+  ['Giá thành, KQKD', 'Dở dang cuối kỳ của VẬT LIỆU CHÍNH?', '(DD đầu + PS) ÷ (SP hoàn thành + SP dở dang) × SP dở dang.\nKHÔNG nhân % hoàn thành.'],
+  ['Giá thành, KQKD', 'Dở dang cuối của VL phụ, nhân công, SX chung?', '(DD đầu + PS) ÷ (SP hoàn thành + SP dở dang × %) × SP dở dang × %.'],
+  ['Giá thành, KQKD', 'Tổng giá thành và giá thành đơn vị?', 'Tổng = DD đầu + PS − DD cuối. Đơn vị = Tổng ÷ số SP hoàn thành.'],
+  ['Giá thành, KQKD', 'Sổ 627 gồm những khoản nào?', 'Lương (334) + Trích theo lương (338) + Khấu hao (214) + Tiền điện (111/112).'],
+  ['Giá thành, KQKD', 'Sổ 632 và sổ 511 tính đơn giá thế nào?', '632: thành tiền = SL xuất × đơn giá bình quân thành phẩm (khóa ô đơn giá bằng $).\n511: đơn giá = doanh thu ÷ số lượng.'],
+  ['Giá thành, KQKD', 'Lợi nhuận trước thuế?', '(Doanh thu thuần + Thu nhập khác) − (Giá vốn + CP tài chính + CP bán hàng + CP QLDN + CP khác). Thuế TNDN 20%.'],
+  ['Giá thành, KQKD', 'Kiểm tra sổ 911 đúng chưa?', 'Cộng PS Nợ 911 phải bằng Cộng PS Có 911.'],
+  // Định khoản
+  ['Định khoản', 'Mua văn phòng phẩm bằng tiền mặt (có VAT)?', 'Nợ 6428 / Nợ 133 / Có 111.'],
+  ['Định khoản', 'Mua TSCĐ bằng quỹ đầu tư phát triển?', 'Nợ 211, Nợ 133 / Có 112, 111.\nĐồng thời kết chuyển nguồn: Nợ 414 / Có 411.'],
+  ['Định khoản', 'Thanh lý TSCĐ?', 'Nợ 214 (hao mòn), Nợ 811 (giá trị còn lại) / Có 211.\nChi thanh lý: Nợ 811 / Có 111. Thu phế liệu: Nợ 111 / Có 711.'],
+  ['Định khoản', 'Chiết khấu thương mại cho khách?', 'Nợ 521 / Có 131 (Nhất Linh: 1% × 90.000 = 900).\nThuế tương ứng: Nợ 3331 / Có 131.\nCuối kỳ kết chuyển: Nợ 511 / Có 521.'],
+  ['Định khoản', 'BHXH trả thay lương và thưởng thi đua?', 'BHXH: Nợ 3383 / Có 334.\nThưởng: Nợ 3531 / Có 334.'],
+  ['Định khoản', 'Nộp các khoản bảo hiểm cho cấp trên (Nhất Linh NV24)?', '1% KPCĐ, 25,5% BHXH, 4,5% BHYT, 2% BHTN bằng TGNH:\nNợ 3382, 3383, 3384, 3389 / Có 112.'],
+  ['Định khoản', 'Kết chuyển chi phí sản xuất và nhập kho thành phẩm?', 'Nợ 154 / Có 621, 622, 627.\nNhập kho: Nợ 155 / Có 154.'],
+  ['Định khoản', 'Các bút toán kết chuyển cuối kỳ?', 'Nợ 511 / Có 911 (DT thuần) · Nợ 711 / Có 911\nNợ 911 / Có 632, 635, 641, 642, 811, 821\nLãi: Nợ 911 / Có 421.'],
+  // Hàm tài chính
+  ['Hàm tài chính', 'PV – cú pháp và ý nghĩa?', 'PV(Rate, Nper, Pmt, [Fv], [Type]) — giá trị hiện tại.\nTiền bỏ ra ghi âm, tiền thu về ghi dương.'],
+  ['Hàm tài chính', 'FV – cú pháp?', 'FV(Rate, Nper, Pmt, [Pv], [Type]) — giá trị tương lai.\nGửi vào thì Pmt, Pv ghi âm.'],
+  ['Hàm tài chính', 'PMT – cú pháp?', 'PMT(Rate, Nper, Pv, [Fv], [Type]) — số tiền trả mỗi kỳ.\nVay: tiền vay là Pv. Tích lũy: số muốn có là Fv, Pv = 0.'],
+  ['Hàm tài chính', 'NPER và RATE – cú pháp?', 'NPER(Rate, Pmt, Pv, [Fv], [Type]) — số kỳ; Pmt và Pv ngược dấu.\nRATE(Nper, Pmt, Pv, [Fv], [Type]) — lãi theo kỳ, ×12 ra lãi năm.'],
+  ['Hàm tài chính', 'Type = 0 và Type = 1?', '0 (hoặc bỏ trống): trả/gửi CUỐI kỳ.\n1: trả/gửi ĐẦU kỳ (“đầu mỗi tháng”, “trả ngay khi ký”).'],
+  ['Hàm tài chính', 'Lãi năm nhưng trả theo tháng hoặc quý?', 'Tháng: Rate = lãi năm/12, Nper = số năm × 12.\nQuý: Rate = lãi quý, Nper = số năm × 4.'],
+  ['Hàm tài chính', 'NPV – vốn đầu tư đặt ở đâu?', 'Đầu tư CUỐI chu kỳ đầu: vốn (âm) nằm trong hàm: =NPV(r,-V,c1,c2,…).\nĐầu tư ĐẦU chu kỳ đầu: =NPV(r,c1,c2,…) − V.'],
+  ['Hàm tài chính', 'IRR dùng để làm gì?', 'IRR(Values) — lãi suất làm NPV = 0.\nIRR > lãi vay → nên vay đầu tư; IRR < lãi vay → không nên.'],
+  ['Hàm tài chính', 'FVSCHEDULE khi nào dùng?', 'Khi lãi suất mỗi kỳ khác nhau: FVSCHEDULE(Principal, {r1,r2,…}).'],
+  ['Hàm tài chính', 'SLN và SYD?', 'SLN(Cost, Salvage, Life) — khấu hao đều.\nSYD(Cost, Salvage, Life, Per) — tổng các năm; Life và Per cùng đơn vị.'],
+  ['Hàm tài chính', 'DB – tham số Month?', 'DB(Cost, Salvage, Life, Period, [Month]) — Month = số tháng dùng trong năm đầu.\nMua đầu tháng 4 → 9; mua cuối tháng 7 → 5. Có thêm kỳ Life+1.'],
+  ['Hàm tài chính', 'DDB – tham số Factor?', 'DDB(Cost, Salvage, Life, Period, [Factor]) — mặc định 2 (200%). Tỷ lệ 120% → 1.2.\nNgày: Life×365; tháng: Life×12.'],
+  ['Hàm tài chính', 'VDB – Start và End?', 'VDB(Cost, Salvage, Life, Start, End, [Factor], [No_switch]).\nKỳ thứ i: Start = i−1, End = i. Theo ngày: lấy số ngày tính từ ngày mua.'],
+  ['Hàm tài chính', 'Bảng Basis (cơ sở tính ngày)?', '0: US 30/360 · 1: thực tế/thực tế · 2: ngày/360 · 3: ngày/365 · 4: Châu Âu 30/360.'],
+  ['Hàm tài chính', 'ACCRINTM và INTRATE?', 'ACCRINTM(Issue, Settlement, Rate, Par, [Basis]) — lãi dồn trả khi đáo hạn.\nINTRATE(Settlement, Maturity, Investment, Redemption, [Basis]) — lãi suất khoản đầu tư.'],
+  ['Hàm tài chính', 'RECEIVED, DISC, PRICEMAT?', 'RECEIVED(Settlement, Maturity, Investment, Discount, [Basis]) — tiền nhận khi tới hạn.\nDISC(Settlement, Maturity, Pr, Redemption, [Basis]) — tỷ suất chiết khấu.\nPRICEMAT(Settlement, Maturity, Issue, Rate, Yld, [Basis]) — không cho Yld thì Yld = Rate.'],
+  ['Hàm tài chính', 'Gõ ngày trong hàm chứng khoán thế nào cho an toàn?', 'Dùng DATE(năm,tháng,ngày), ví dụ DATE(2008,4,1), để máy không hiểu nhầm ngày/tháng.'],
+  // Hàm Excel dữ liệu
+  ['Hàm Excel', 'VLOOKUP tìm chính xác?', '=VLOOKUP(giá trị tìm, $vùng$, cột trả về, 0) — tham số cuối 0 (FALSE) để tìm chính xác; khóa vùng bằng $.'],
+  ['Hàm Excel', 'Lấy ký tự trong mã và IF?', '=IF(MID(B5,3,1)="0","Nam","Nữ") — MID(chuỗi, vị trí, số ký tự). LEFT/RIGHT lấy từ trái/phải.'],
+  ['Hàm Excel', 'SUMIF và SUMIFS?', 'SUMIF(vùng ĐK, ĐK, vùng cộng).\nSUMIFS(vùng cộng, vùng ĐK1, ĐK1, vùng ĐK2, ĐK2, …) — vùng cộng đứng ĐẦU.'],
+  ['Hàm Excel', 'Bẫy SUMIF sau khi sắp xếp?', 'Vùng điều kiện và vùng cộng phải cùng sheet, cùng thứ tự dòng. Sort một sheet mà SUMIF lấy cột ở sheet khác thì ra sai.'],
+  ['Hàm Excel', 'Ghép họ tên?', '=CONCAT(C5," ",D5) hoặc =C5&" "&D5.'],
+  ['Hàm Excel', 'Địa chỉ tuyệt đối $ dùng khi nào?', 'Khi kéo công thức mà ô tham chiếu phải đứng yên: $H$11 (khóa cả dòng và cột), $C67 (khóa cột), D$66 (khóa dòng).'],
+  ['Hàm Excel', 'Lập sổ cái TK 111 từ Nhật ký chung?', 'Data → Advanced Filter, điều kiện TK Nợ = 111* hoặc TK Có = 111* (hai dòng điều kiện) → bảng trung gian → PS Nợ, PS Có, dư cuối.'],
+  ['Hàm Excel', 'Bảng cân đối tài khoản bằng SUMIF?', 'Dư đầu: SUMIF(cột TK số dư, TK&"*", cột Nợ/Có).\nPS: SUMIF(cột TK Nợ trên NKC, TK&"*", cột số tiền) và tương tự TK Có.\nDư cuối Nợ: =IF(đầu Nợ + PS Nợ > đầu Có + PS Có, chênh lệch, 0).'],
+  // Đáp số chốt
+  ['Đáp số chốt', 'Nhất Linh: tổng quỹ lương, giá thành đơn vị, LN sau thuế?', 'Tổng quỹ lương 238.690 · Lương thời gian 204.545,77\nGiá thành đơn vị SP A 7,114\nLợi nhuận sau thuế 38.147,02'],
+  ['Đáp số chốt', 'Nhất Linh: tổng tài sản trên bảng cân đối kế toán?', '4.271.228,70 = tổng nguồn vốn (TSNH 2.301.325,48 · TSDH 1.969.903,23).'],
+  ['Đáp số chốt', 'Quốc An: tổng lương, giá thành đơn vị, LN sau thuế?', 'Tổng quỹ lương 216.214,6 · Giá thành đơn vị 23,021 · LN sau thuế 902.580,09.'],
+  ['Đáp số chốt', 'Lỗi in trong tài liệu hàm tài chính?', 'FVSCHEDULE(5000000,{7%,9%,8%,11%}) đúng là 6.990.802 (tài liệu ghi 20.972.407).\nVí dụ NPV anh Thảo tính với 45900 (công thức gõ nhầm 45999).']
+];
+
+let FC = { ds: [], i: 0, lat: false };
+function thuoc() { return new Set(store.get('fcThuoc', [])); }
+function locThe() {
+  const chu = store.get('fcChu', 'Tất cả'), chiChua = $('#fcChua').checked, t = thuoc();
+  let ds = THE.map((x, k) => ({ k, chu: x[0], q: x[1], a: x[2] })).filter(x => (chu === 'Tất cả' || x.chu === chu) && (!chiChua || !t.has(x.k)));
+  if (store.get('fcTron', false)) {
+    const r = rng(store.get('fcSeed', 1));
+    for (let i = ds.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [ds[i], ds[j]] = [ds[j], ds[i]]; }
+  }
+  FC.ds = ds; FC.i = Math.min(FC.i, Math.max(ds.length - 1, 0)); FC.lat = false;
+  veThe();
+}
+function veThe() {
+  const t = thuoc(), x = FC.ds[FC.i];
+  const chu = store.get('fcChu', 'Tất cả');
+  const chus = ['Tất cả', ...new Set(THE.map(x => x[0]))];
+  $('#fcChu').innerHTML = chus.map(c => { const n = c === 'Tất cả' ? THE.length : THE.filter(x => x[0] === c).length; return `<button type="button" class="chipbtn" aria-pressed="${c === chu}" data-chu="${esc(c)}">${esc(c)} <span>${n}</span></button>`; }).join('');
+  document.querySelectorAll('[data-chu]').forEach(b => b.onclick = () => { store.set('fcChu', b.dataset.chu); FC.i = 0; locThe(); });
+  $('#fcThuocSo').textContent = `Đã thuộc ${t.size}/${THE.length}`;
+  $('#fcBar').style.width = (t.size / THE.length * 100) + '%';
+  if (!x) {
+    $('#fcThe').innerHTML = `<p class="fc-q">Bạn đã thuộc hết thẻ trong mục này.</p><p class="small">Bỏ chọn “Chỉ thẻ chưa thuộc” để ôn lại.</p>`;
+    $('#fcViTri').textContent = '0/0'; return;
+  }
+  $('#fcViTri').textContent = `${FC.i + 1}/${FC.ds.length}`;
+  $('#fcThe').classList.toggle('lat', FC.lat);
+  $('#fcThe').innerHTML = `<span class="src">${esc(x.chu)}${t.has(x.k) ? ' · đã thuộc' : ''}</span><p class="fc-q">${esc(x.q)}</p>
+    ${FC.lat ? `<div class="fc-a">${esc(x.a)}</div>` : '<p class="small">Bấm vào thẻ hoặc phím Space để lật</p>'}`;
+  $('#fcLat').textContent = FC.lat ? 'Úp thẻ' : 'Lật thẻ';
+}
+function diThe(d) { if (!FC.ds.length) return; FC.i = (FC.i + d + FC.ds.length) % FC.ds.length; FC.lat = false; veThe(); }
+function danhDau(da) {
+  const x = FC.ds[FC.i]; if (!x) return;
+  const t = thuoc(); da ? t.add(x.k) : t.delete(x.k); store.set('fcThuoc', [...t]);
+  if ($('#fcChua').checked && da) locThe(); else diThe(1);
+}
+function ganThe() {
+  $('#fcChua').checked = store.get('fcChiChua', false);
+  $('#fcChua').onchange = () => { store.set('fcChiChua', $('#fcChua').checked); FC.i = 0; locThe(); };
+  $('#fcThe').onclick = () => { if (!FC.ds.length) return; FC.lat = !FC.lat; veThe(); };
+  $('#fcThe').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('#fcThe').click(); } };
+  $('#fcLat').onclick = () => $('#fcThe').click();
+  $('#fcTruoc').onclick = () => diThe(-1);
+  $('#fcSau').onclick = () => diThe(1);
+  $('#fcChuaThuoc').onclick = () => danhDau(false);
+  $('#fcDaThuoc').onclick = () => danhDau(true);
+  $('#fcTron').onclick = () => { store.set('fcTron', true); store.set('fcSeed', Math.floor(Math.random() * 1e6)); FC.i = 0; locThe(); toast('Đã trộn thẻ'); };
+  $('#fcXoa').onclick = () => { store.set('fcThuoc', []); locThe(); toast('Đã đặt lại: tất cả thẻ là chưa thuộc'); };
+  document.addEventListener('keydown', e => {
+    if ($('#p-the').hidden || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if (e.key === ' ') { e.preventDefault(); $('#fcThe').click(); }
+    else if (e.key === 'ArrowRight') diThe(1);
+    else if (e.key === 'ArrowLeft') diThe(-1);
+    else if (e.key === '1') danhDau(false);
+    else if (e.key === '2') danhDau(true);
+  });
+  locThe();
+}
+
 /* ===== Khởi động ===== */
-renderFin(); renderNL(); renderMeo();
+renderFin(); renderNL(); renderMeo(); ganHTC(); ganThe();
 napDe(store.get('de', 'quocan'));
 const h = (location.hash || '').slice(1);
-moTab(['lam', 'ham', 'tracuu'].includes(h) ? h : 'lam');
+moTab(['lam', 'ham', 'the', 'tracuu'].includes(h) ? h : 'lam');
 </script>
 </body>
 </html>
